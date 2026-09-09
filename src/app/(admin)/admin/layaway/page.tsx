@@ -487,12 +487,13 @@ export default function AdminLayawayPage() {
         />
       </div>
 
-      {/* Contracts Table */}
-      <FadeInUp className="rounded-3xl bg-white border border-gold-500/30 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+      {/* Contracts Table & Mobile Cards */}
+      <FadeInUp className="rounded-3xl theme-card overflow-hidden shadow-sm">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-xs theme-table">
             <thead>
-              <tr className="border-b border-neutral-200 bg-[#FAF8F2] text-neutral-600 uppercase font-mono text-[11px]">
+              <tr className="border-b theme-table-header uppercase font-mono text-[11px]">
                 <th className="w-10 p-4 text-center">
                   <input
                     type="checkbox"
@@ -528,16 +529,16 @@ export default function AdminLayawayPage() {
                   </td>
                 </tr>
               ) : (
-                paginated.map((contract) => {
+                paginated.map((contract, idx) => {
                   const isSelected = selectedIds.includes(contract.id);
                   const progress = calculateLayawayProgress(contract.totalAmount, contract.remainingBalance);
 
                   return (
                     <tr
                       key={contract.id}
-                      className={`hover:bg-neutral-50 transition-colors ${
-                        isSelected ? 'bg-gold-500/5' : ''
-                      }`}
+                      className={`theme-table-row transition-colors ${
+                        idx % 2 === 1 ? 'theme-table-row-alt' : ''
+                      } ${isSelected ? 'bg-gold-500/10' : ''}`}
                     >
                       <td className="w-10 p-4 text-center">
                         <input
@@ -645,6 +646,142 @@ export default function AdminLayawayPage() {
           </table>
         </div>
 
+        {/* Mobile Responsive Cards View */}
+        <div className="block md:hidden p-3 space-y-3">
+          {isLoading ? (
+            <div className="p-8 text-center text-xs text-neutral-500">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-gold-600" />
+              Loading layaway plans...
+            </div>
+          ) : paginated.length === 0 ? (
+            <div className="p-8 text-center text-xs text-neutral-500">
+              <Lock className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
+              No layaway contracts found matching your search.
+            </div>
+          ) : (
+            paginated.map((contract) => {
+              const isSelected = selectedIds.includes(contract.id);
+              const progress = calculateLayawayProgress(contract.totalAmount, contract.remainingBalance);
+
+              return (
+                <div
+                  key={contract.id}
+                  className="p-4 rounded-2xl border transition-all space-y-3"
+                  style={{
+                    backgroundColor: isSelected ? 'rgba(212,175,55,0.08)' : 'var(--theme-bg-card, #FFFFFF)',
+                    borderColor: isSelected ? 'var(--theme-primary, #D4AF37)' : 'var(--theme-border-card, #E8DFCA)',
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleSelect(contract.id)}
+                        className="w-4 h-4 rounded border-neutral-300 text-gold-600 focus:ring-gold-500 cursor-pointer accent-gold-600"
+                      />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-bold text-xs" style={{ color: 'var(--theme-primary, #D4AF37)' }}>
+                            {contract.contractNumber}
+                          </span>
+                          <Badge
+                            variant={contract.status === 'COMPLETED' ? 'emerald' : contract.status === 'DEFAULTED' ? 'rose' : 'gold'}
+                            size="sm"
+                          >
+                            {contract.status}
+                          </Badge>
+                        </div>
+                        <span className="text-[10px] block mt-0.5" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                          Started {new Date(contract.startDate).toLocaleDateString()} • {contract.termMonths}M Plan
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEditContract(contract)}
+                        className="p-1.5 rounded-lg text-gold-700 hover:bg-gold-500/10 cursor-pointer"
+                        title="Edit Plan"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <Link href={`/invoice/${contract.id}`}>
+                        <button
+                          className="p-1.5 rounded-lg text-neutral-600 hover:bg-neutral-100 cursor-pointer"
+                          title="Invoice"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                        </button>
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteContract(contract.id, contract.contractNumber)}
+                        className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="Delete contract"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                    <div className="flex justify-between items-start text-xs">
+                      <div>
+                        <span className="font-bold block" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                          {contract.user?.name || 'Walk-In Customer'}
+                        </span>
+                        <span className="text-[11px] font-mono" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                          {contract.user?.phone || contract.user?.email || 'No contact'}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] block" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                          Total Value
+                        </span>
+                        <span className="font-mono font-black text-sm" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                          {formatCurrency(contract.totalAmount)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress bar & Remaining */}
+                  <div className="space-y-1 pt-2 border-t" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                    <div className="flex justify-between text-xs font-mono">
+                      <span style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                        Paid: {progress}% (DP: {formatCurrency(contract.downPaymentAmount)})
+                      </span>
+                      <span className="font-bold" style={{ color: 'var(--theme-primary, #D4AF37)' }}>
+                        Due: {formatCurrency(contract.remainingBalance)}
+                      </span>
+                    </div>
+                    <div className="w-full bg-neutral-100 rounded-full h-2 overflow-hidden border border-neutral-200">
+                      <div
+                        className="bg-gold-500 h-full rounded-full transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t flex justify-end" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedContract(contract);
+                        setManualPayAmount(contract.monthlyInstallment?.toString() || '');
+                      }}
+                      className="w-full text-xs font-bold justify-center"
+                    >
+                      Manage & Post Payment
+                    </Button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
         {/* Pagination Controls */}
         <Pagination
           currentPage={currentPage}
@@ -666,7 +803,7 @@ export default function AdminLayawayPage() {
         maxWidth="lg"
       >
         <form onSubmit={handleSaveEditContract} className="space-y-4 text-xs">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Customer Name</label>
               <input
@@ -688,7 +825,7 @@ export default function AdminLayawayPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Total Contract (₱)</label>
               <input
@@ -739,12 +876,13 @@ export default function AdminLayawayPage() {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-neutral-200">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-2 pt-3 border-t border-neutral-200">
             <Button
               type="button"
               variant="secondary"
               size="sm"
               onClick={() => setIsEditModalOpen(false)}
+              className="w-full sm:w-auto font-bold"
             >
               Cancel
             </Button>
@@ -753,7 +891,7 @@ export default function AdminLayawayPage() {
               variant="primary"
               size="sm"
               isLoading={isSavingEdit}
-              className="font-bold"
+              className="w-full sm:w-auto font-bold"
             >
               Save Contract Changes
             </Button>
@@ -934,6 +1072,7 @@ export default function AdminLayawayPage() {
                   onChange={(e) => setInstallmentCount(parseInt(e.target.value) || 1)}
                   className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-medium"
                 >
+                  <option value={1}>1 Payment (1 Month)</option>
                   <option value={2}>2 Payments</option>
                   <option value={3}>3 Payments</option>
                   <option value={4}>4 Payments</option>
@@ -1010,12 +1149,13 @@ export default function AdminLayawayPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-neutral-200">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-2 pt-3 border-t border-neutral-200">
             <Button
               type="button"
               variant="secondary"
               size="sm"
               onClick={() => setIsCreateModalOpen(false)}
+              className="w-full sm:w-auto font-bold"
             >
               Cancel
             </Button>
@@ -1024,7 +1164,7 @@ export default function AdminLayawayPage() {
               variant="primary"
               size="sm"
               isLoading={isSubmitting}
-              className="font-bold"
+              className="w-full sm:w-auto font-bold"
             >
               Create Layaway Contract
             </Button>
@@ -1043,7 +1183,7 @@ export default function AdminLayawayPage() {
         >
           <div className="space-y-6 text-xs">
             {/* Contract Summary */}
-            <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-[#FAF8F2] border border-gold-500/20">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-[#FAF8F2] border border-gold-500/20">
               <div>
                 <span className="text-neutral-500 block uppercase text-[10px] font-bold">Total Value</span>
                 <span className="font-bold text-neutral-900 font-mono text-sm">{formatCurrency(selectedContract.totalAmount)}</span>
@@ -1093,7 +1233,7 @@ export default function AdminLayawayPage() {
             <form onSubmit={handleRecordManualPayment} className="pt-4 border-t border-neutral-200 space-y-3">
               <h4 className="font-bold text-gold-700 uppercase tracking-wider">Record Offline / Manual Settlement</h4>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-neutral-800 font-bold mb-1">Amount (₱ PHP)</label>
                   <input
@@ -1131,12 +1271,13 @@ export default function AdminLayawayPage() {
                 />
               </div>
 
-              <div className="pt-2 flex justify-end gap-3">
+              <div className="pt-2 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
                 <Button
                   type="button"
                   variant="secondary"
                   size="sm"
                   onClick={() => setSelectedContract(null)}
+                  className="w-full sm:w-auto font-bold"
                 >
                   Close
                 </Button>
@@ -1145,7 +1286,7 @@ export default function AdminLayawayPage() {
                   variant="primary"
                   size="sm"
                   isLoading={isProcessing}
-                  className="font-bold shadow-xs"
+                  className="w-full sm:w-auto font-bold shadow-xs"
                 >
                   Confirm & Post Payment
                 </Button>

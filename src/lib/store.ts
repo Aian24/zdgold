@@ -21,7 +21,7 @@ export interface SiteBrandSettings {
 export const DEFAULT_BRAND_SETTINGS: SiteBrandSettings = {
   companyName: 'DANICA GOLD PHILIPPINES',
   tagline: 'Haute Joaillerie & Certified Fine Gold House',
-  logoUrl: '',
+  logoUrl: '/images/logo.png',
   phone: '+63 (02) 8888-GOLD / +63 917 123 4567',
   email: 'inquiries@danicagold.ph',
   address: 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',

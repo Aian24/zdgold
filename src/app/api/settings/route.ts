@@ -13,7 +13,7 @@ export async function GET() {
           id: 'default_settings',
           companyName: 'DANICA GOLD PHILIPPINES',
           tagline: 'Haute Joaillerie & Certified Fine Gold House',
-          logoUrl: '',
+          logoUrl: '/images/logo.png',
           phone: '+63 (02) 8888-GOLD / +63 917 123 4567',
           email: 'inquiries@danicagold.ph',
           address: 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
@@ -23,7 +23,13 @@ export async function GET() {
       });
     }
 
-    return NextResponse.json({ success: true, settings });
+    return NextResponse.json({
+      success: true,
+      settings: {
+        ...settings,
+        logoUrl: settings.logoUrl || '/images/logo.png',
+      },
+    });
   } catch (error) {
     console.error('Error fetching site settings:', error);
     return NextResponse.json(
@@ -32,7 +38,7 @@ export async function GET() {
         settings: {
           companyName: 'DANICA GOLD PHILIPPINES',
           tagline: 'Haute Joaillerie & Certified Fine Gold House',
-          logoUrl: '',
+          logoUrl: '/images/logo.png',
           phone: '+63 (02) 8888-GOLD / +63 917 123 4567',
           email: 'inquiries@danicagold.ph',
           address: 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
@@ -57,6 +63,7 @@ export async function POST(request: Request) {
       address,
       currencySymbol,
       goldAccentColor,
+      themeConfig,
     } = body;
 
     const updated = await prisma.siteSettings.upsert({
@@ -70,6 +77,7 @@ export async function POST(request: Request) {
         address: address || 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
         currencySymbol: currencySymbol || '₱',
         goldAccentColor: goldAccentColor || '#D4AF37',
+        ...(themeConfig ? { themeConfig: typeof themeConfig === 'string' ? themeConfig : JSON.stringify(themeConfig) } : {}),
       },
       create: {
         id: 'default_settings',
@@ -81,6 +89,7 @@ export async function POST(request: Request) {
         address: address || 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
         currencySymbol: currencySymbol || '₱',
         goldAccentColor: goldAccentColor || '#D4AF37',
+        themeConfig: themeConfig ? (typeof themeConfig === 'string' ? themeConfig : JSON.stringify(themeConfig)) : '{}',
       },
     });
 

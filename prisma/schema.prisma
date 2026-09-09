@@ -17,6 +17,7 @@ model SiteSettings {
   address         String   @default("5th Avenue Flagship & Vault, New York, NY 10001")
   currencySymbol  String   @default("$")
   goldAccentColor String   @default("#D4AF37")
+  themeConfig     String?  @default("{}")
   updatedAt       DateTime @default(now()) @updatedAt
 }
 

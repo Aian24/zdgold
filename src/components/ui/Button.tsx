@@ -22,7 +22,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
-  const baseStyles = 'inline-flex items-center justify-center font-medium rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-500/40 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] cursor-pointer';
+  const baseStyles = 'inline-flex items-center justify-center font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gold-500/40 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] cursor-pointer';
 
   const sizeStyles = {
     sm: 'px-3 py-1.5 text-xs font-bold tracking-wide',
@@ -31,12 +31,12 @@ export const Button: React.FC<ButtonProps> = ({
   };
 
   const variantStyles = {
-    primary: 'bg-gradient-to-r from-gold-500 via-gold-500 to-gold-600 text-white hover:from-gold-400 hover:to-gold-500 shadow-md shadow-gold-500/20 font-bold border border-gold-400/40',
-    secondary: 'bg-white text-neutral-800 hover:bg-neutral-50 border border-gold-500/30 hover:border-gold-500 shadow-xs font-bold',
+    primary: 'theme-btn-primary shadow-md font-bold',
+    secondary: 'theme-btn-secondary shadow-xs font-bold border',
     outline: 'bg-transparent text-neutral-700 border border-neutral-300 hover:bg-neutral-50 hover:border-neutral-400',
     'gold-outline': 'bg-white text-gold-700 border border-gold-500 hover:bg-gold-500/10 font-bold shadow-xs',
     ghost: 'bg-transparent text-neutral-700 hover:bg-gold-500/10 hover:text-gold-700',
-    danger: 'bg-red-600 hover:bg-red-500 text-white shadow-xs',
+    danger: 'theme-btn-danger text-white shadow-xs font-bold',
   };
 
   return (

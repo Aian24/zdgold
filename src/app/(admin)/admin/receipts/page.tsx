@@ -665,6 +665,7 @@ export default function AdminReceiptsPage() {
                         onChange={(e) => setInstallmentCount(parseInt(e.target.value) || 1)}
                         className="w-full bg-neutral-50 border border-neutral-200 rounded-lg px-2.5 py-1.5 text-xs font-medium"
                       >
+                        <option value={1}>1 Payment (1 Month)</option>
                         <option value={2}>2 Payments</option>
                         <option value={3}>3 Payments</option>
                         <option value={4}>4 Payments</option>
@@ -907,96 +908,178 @@ export default function AdminReceiptsPage() {
             entityName="receipts"
           />
 
-          <div className="rounded-2xl bg-white border border-neutral-200 overflow-hidden shadow-2xs">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="bg-neutral-50 border-b border-neutral-200 text-neutral-600 font-mono text-[11px]">
-                  <th className="w-10 p-3 text-center">
-                    <input
-                      type="checkbox"
-                      checked={isAllOnPageSelected}
-                      onChange={handleSelectAll}
-                      className="w-4 h-4 rounded border-neutral-300 text-gold-600 focus:ring-gold-500 cursor-pointer accent-gold-600"
-                      title="Select all on current page"
-                    />
-                  </th>
-                  <th className="text-left p-3">OR Number</th>
-                  <th className="text-left p-3">Client</th>
-                  <th className="text-center p-3">Type</th>
-                  <th className="text-right p-3">Total Amount</th>
-                  <th className="text-center p-3">Date</th>
-                  <th className="text-right p-3">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-neutral-100">
-                {isLoadingLedger ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-xs text-neutral-500">
-                      <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-gold-600" />
-                      Loading receipts...
-                    </td>
+          <div className="rounded-2xl theme-card overflow-hidden shadow-2xs">
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-xs theme-table">
+                <thead>
+                  <tr className="border-b theme-table-header font-mono text-[11px]">
+                    <th className="w-10 p-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isAllOnPageSelected}
+                        onChange={handleSelectAll}
+                        className="w-4 h-4 rounded border-neutral-300 text-gold-600 focus:ring-gold-500 cursor-pointer accent-gold-600"
+                        title="Select all on current page"
+                      />
+                    </th>
+                    <th className="text-left p-3">OR Number</th>
+                    <th className="text-left p-3">Client</th>
+                    <th className="text-center p-3">Type</th>
+                    <th className="text-right p-3">Total Amount</th>
+                    <th className="text-center p-3">Date</th>
+                    <th className="text-right p-3">Action</th>
                   </tr>
-                ) : paginatedReceipts.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="p-8 text-center text-xs text-neutral-500">
-                      <Receipt className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
-                      No saved receipts found.
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedReceipts.map((receipt) => {
-                    const isSelected = selectedIds.includes(receipt.id);
+                </thead>
+                <tbody className="divide-y divide-neutral-100">
+                  {isLoadingLedger ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-xs text-neutral-500">
+                        <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-gold-600" />
+                        Loading receipts...
+                      </td>
+                    </tr>
+                  ) : paginatedReceipts.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="p-8 text-center text-xs text-neutral-500">
+                        <Receipt className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
+                        No saved receipts found.
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedReceipts.map((receipt, idx) => {
+                      const isSelected = selectedIds.includes(receipt.id);
 
-                    return (
-                      <tr
-                        key={receipt.id}
-                        className={`hover:bg-neutral-50 transition-colors ${
-                          isSelected ? 'bg-gold-500/5' : ''
-                        }`}
-                      >
-                        <td className="w-10 p-3 text-center">
+                      return (
+                        <tr
+                          key={receipt.id}
+                          className={`theme-table-row transition-colors ${
+                            idx % 2 === 1 ? 'theme-table-row-alt' : ''
+                          } ${isSelected ? 'bg-gold-500/10' : ''}`}
+                        >
+                          <td className="w-10 p-3 text-center">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => handleToggleSelect(receipt.id)}
+                              className="w-4 h-4 rounded border-neutral-300 text-gold-600 focus:ring-gold-500 cursor-pointer accent-gold-600"
+                            />
+                          </td>
+                          <td className="p-3 font-mono font-bold text-gold-700">{receipt.orderNumber}</td>
+                          <td className="p-3 font-bold text-neutral-900">{receipt.user?.name}</td>
+                          <td className="p-3 text-center">
+                            <Badge variant={receipt.orderType === 'LAYAWAY' ? 'gold' : 'emerald'} size="sm">
+                              {receipt.orderType}
+                            </Badge>
+                          </td>
+                          <td className="p-3 text-right font-mono font-bold text-neutral-900">
+                            {formatCurrency(receipt.totalAmount)}
+                          </td>
+                          <td className="p-3 text-center font-mono text-neutral-500">
+                            {new Date(receipt.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="p-3 text-right">
+                            <div className="flex items-center justify-end gap-1.5">
+                              <Link href={`/invoice/${receipt.id}`}>
+                                <Button variant="gold-outline" size="sm" className="text-xs py-0.5 px-2 font-bold">
+                                  View
+                                </Button>
+                              </Link>
+                              <button
+                                onClick={() => handleDeleteReceipt(receipt.id, receipt.orderNumber)}
+                                className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                                title="Delete Receipt"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Responsive Cards */}
+            <div className="block md:hidden p-3 space-y-3">
+              {isLoadingLedger ? (
+                <div className="p-8 text-center text-xs text-neutral-500">
+                  <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-gold-600" />
+                  Loading receipts...
+                </div>
+              ) : paginatedReceipts.length === 0 ? (
+                <div className="p-8 text-center text-xs text-neutral-500">
+                  <Receipt className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
+                  No saved receipts found.
+                </div>
+              ) : (
+                paginatedReceipts.map((receipt) => {
+                  const isSelected = selectedIds.includes(receipt.id);
+
+                  return (
+                    <div
+                      key={receipt.id}
+                      className="p-4 rounded-2xl border transition-all space-y-3"
+                      style={{
+                        backgroundColor: isSelected ? 'rgba(212,175,55,0.08)' : 'var(--theme-bg-card, #FFFFFF)',
+                        borderColor: isSelected ? 'var(--theme-primary, #D4AF37)' : 'var(--theme-border-card, #E8DFCA)',
+                      }}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2">
                           <input
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => handleToggleSelect(receipt.id)}
                             className="w-4 h-4 rounded border-neutral-300 text-gold-600 focus:ring-gold-500 cursor-pointer accent-gold-600"
                           />
-                        </td>
-                        <td className="p-3 font-mono font-bold text-gold-700">{receipt.orderNumber}</td>
-                        <td className="p-3 font-bold text-neutral-900">{receipt.user?.name}</td>
-                        <td className="p-3 text-center">
+                          <div>
+                            <span className="font-mono font-bold text-xs" style={{ color: 'var(--theme-primary, #D4AF37)' }}>
+                              {receipt.orderNumber}
+                            </span>
+                            <span className="text-[10px] block mt-0.5" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                              {new Date(receipt.createdAt).toLocaleDateString()}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1.5">
                           <Badge variant={receipt.orderType === 'LAYAWAY' ? 'gold' : 'emerald'} size="sm">
                             {receipt.orderType}
                           </Badge>
-                        </td>
-                        <td className="p-3 text-right font-mono font-bold text-neutral-900">
-                          {formatCurrency(receipt.totalAmount)}
-                        </td>
-                        <td className="p-3 text-center font-mono text-neutral-500">
-                          {new Date(receipt.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="p-3 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
-                            <Link href={`/invoice/${receipt.id}`}>
-                              <Button variant="gold-outline" size="sm" className="text-xs py-0.5 px-2 font-bold">
-                                View
-                              </Button>
-                            </Link>
+                          <Link href={`/invoice/${receipt.id}`}>
                             <button
-                              onClick={() => handleDeleteReceipt(receipt.id, receipt.orderNumber)}
-                              className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                              title="Delete Receipt"
+                              className="p-1.5 rounded-lg text-neutral-600 hover:bg-neutral-100 cursor-pointer"
+                              title="View Invoice"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <FileText className="w-3.5 h-3.5" />
                             </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                          </Link>
+                          <button
+                            onClick={() => handleDeleteReceipt(receipt.id, receipt.orderNumber)}
+                            className="p-1.5 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            title="Delete Receipt"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                        <span className="font-bold text-xs" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                          {receipt.user?.name || 'Walk-In Customer'}
+                        </span>
+                        <span className="font-mono font-black text-sm" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                          {formatCurrency(receipt.totalAmount)}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
 
             {/* Pagination Controls */}
             <Pagination

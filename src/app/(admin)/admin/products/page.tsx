@@ -52,12 +52,12 @@ export default function AdminProductsPage() {
     category: 'NECKLACES' as ProductCategory,
     karat: '18K' as GoldKarat,
     weightGrams: 20.0,
-    craftFee: 200.0,
+    craftFee: 0,
     basePrice: 1500.0,
     stockQuantity: 10,
     isFeatured: false,
     images: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=800',
-    hallmarkCertNumber: 'DG-AU-CERT-2026',
+    hallmarkCertNumber: '',
     dimensions: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -189,12 +189,12 @@ export default function AdminProductsPage() {
       category: 'NECKLACES',
       karat: '18K',
       weightGrams: 25.0,
-      craftFee: 250.0,
+      craftFee: 0,
       basePrice: 1870.0,
       stockQuantity: 8,
       isFeatured: false,
       images: 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=800',
-      hallmarkCertNumber: `DG-CERT-${Math.floor(1000 + Math.random() * 9000)}`,
+      hallmarkCertNumber: '',
       dimensions: '22 inches, 4.0mm width',
     });
     setIsModalOpen(true);
@@ -208,7 +208,7 @@ export default function AdminProductsPage() {
       category: product.category,
       karat: product.karat,
       weightGrams: product.weightGrams,
-      craftFee: product.craftFee,
+      craftFee: product.craftFee || 0,
       basePrice: product.basePrice,
       stockQuantity: product.stockQuantity,
       isFeatured: product.isFeatured,
@@ -341,12 +341,13 @@ export default function AdminProductsPage() {
         />
       </div>
 
-      {/* Table */}
-      <FadeInUp className="rounded-3xl bg-white border border-gold-500/30 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+      {/* Table & Mobile Cards */}
+      <FadeInUp className="rounded-3xl theme-card overflow-hidden shadow-sm">
+        {/* Desktop Data Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-xs theme-table">
             <thead>
-              <tr className="border-b border-neutral-200 bg-[#FAF8F2] text-neutral-600 uppercase font-mono text-[11px]">
+              <tr className="border-b theme-table-header uppercase font-mono text-[11px]">
                 <th className="w-10 p-4 text-center">
                   <input
                     type="checkbox"
@@ -381,7 +382,7 @@ export default function AdminProductsPage() {
                   </td>
                 </tr>
               ) : (
-                paginated.map((product) => {
+                paginated.map((product, idx) => {
                   const isSelected = selectedIds.includes(product.id);
                   const img =
                     Array.isArray(product.images) && product.images.length > 0
@@ -391,9 +392,9 @@ export default function AdminProductsPage() {
                   return (
                     <tr
                       key={product.id}
-                      className={`hover:bg-neutral-50 transition-colors ${
-                        isSelected ? 'bg-gold-500/5' : ''
-                      }`}
+                      className={`theme-table-row transition-colors ${
+                        idx % 2 === 1 ? 'theme-table-row-alt' : ''
+                      } ${isSelected ? 'bg-gold-500/10' : ''}`}
                     >
                       <td className="w-10 p-4 text-center">
                         <input
@@ -470,6 +471,97 @@ export default function AdminProductsPage() {
           </table>
         </div>
 
+        {/* Mobile Responsive Cards View */}
+        <div className="block md:hidden p-3 space-y-3">
+          {isLoading ? (
+            <div className="p-8 text-center text-xs text-neutral-500">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-gold-600" />
+              Loading products...
+            </div>
+          ) : paginated.length === 0 ? (
+            <div className="p-8 text-center text-xs text-neutral-500">
+              <Package className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
+              No products found matching your search.
+            </div>
+          ) : (
+            paginated.map((product) => {
+              const isSelected = selectedIds.includes(product.id);
+              const img =
+                Array.isArray(product.images) && product.images.length > 0
+                  ? product.images[0]
+                  : 'https://images.unsplash.com/photo-1610375461246-83df859d849d?auto=format&fit=crop&q=80&w=800';
+
+              return (
+                <div
+                  key={product.id}
+                  className="p-4 rounded-2xl border transition-all space-y-3"
+                  style={{
+                    backgroundColor: isSelected ? 'rgba(212,175,55,0.08)' : 'var(--theme-bg-card, #FFFFFF)',
+                    borderColor: isSelected ? 'var(--theme-primary, #D4AF37)' : 'var(--theme-border-card, #E8DFCA)',
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleSelect(product.id)}
+                        className="w-4 h-4 rounded border-neutral-300 text-gold-600 focus:ring-gold-500 cursor-pointer accent-gold-600"
+                      />
+                      <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-neutral-100 border border-gold-500/20 flex-shrink-0">
+                        <Image src={img} alt={product.name} fill className="object-cover" />
+                      </div>
+                      <div>
+                        <span className="font-bold block text-sm line-clamp-1" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                          {product.name}
+                        </span>
+                        <span className="text-[10px] text-emerald-700 font-mono font-bold">
+                          {product.hallmarkCertNumber || 'Certified'}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEdit(product)}
+                        className="p-2 rounded-lg text-gold-700 hover:bg-gold-500/10 cursor-pointer"
+                        title="Edit product"
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(product.id, product.name)}
+                        className="p-2 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer"
+                        title="Delete product"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 pt-2 border-t" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                    <Badge variant="slate" size="sm">{product.category}</Badge>
+                    <span className="text-xs font-mono font-bold" style={{ color: 'var(--theme-primary, #D4AF37)' }}>
+                      {product.karat} • {formatGrams(product.weightGrams)}
+                    </span>
+                    <span className={`text-xs font-mono font-bold ml-auto ${product.stockQuantity <= 5 ? 'text-rose-600' : 'text-emerald-700'}`}>
+                      {product.stockQuantity} pcs in stock
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                    <span className="text-[11px]" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                      Craft: {formatCurrency(product.craftFee)}
+                    </span>
+                    <span className="font-mono font-black text-base" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                      {formatCurrency(product.basePrice)}
+                    </span>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
         {/* Pagination Controls */}
         <Pagination
           currentPage={currentPage}
@@ -498,7 +590,7 @@ export default function AdminProductsPage() {
             required
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Select
               label="Category"
               value={formData.category}
@@ -518,16 +610,16 @@ export default function AdminProductsPage() {
               value={formData.karat}
               onChange={(e) => setFormData({ ...formData, karat: e.target.value as any })}
               options={[
-                { label: '24K (99.9% Pure)', value: '24K' },
-                { label: '22K (91.6% Pure)', value: '22K' },
-                { label: '18K (75.0% Pure)', value: '18K' },
-                { label: '14K (58.5% Pure)', value: '14K' },
-                { label: '10K (41.7% Pure)', value: '10K' },
+                { label: '24K', value: '24K' },
+                { label: '22K', value: '22K' },
+                { label: '18K', value: '18K' },
+                { label: '14K', value: '14K' },
+                { label: '10K', value: '10K' },
               ]}
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             <div>
               <label className="block text-xs font-bold text-neutral-800 uppercase mb-1">Weight (Grams)</label>
               <input
@@ -536,19 +628,6 @@ export default function AdminProductsPage() {
                 placeholder="0"
                 value={formData.weightGrams === 0 ? '' : formData.weightGrams}
                 onChange={(e) => setFormData({ ...formData, weightGrams: e.target.value === '' ? 0 : parseFloat(e.target.value) || 0 })}
-                className="w-full bg-white border border-gold-500/30 rounded-xl p-2.5 font-mono text-neutral-900 shadow-xs focus:border-gold-500 focus:outline-none"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-neutral-800 uppercase mb-1">Craft Fee (₱)</label>
-              <input
-                type="number"
-                step="1"
-                placeholder="0"
-                value={formData.craftFee === 0 ? '' : formData.craftFee}
-                onChange={(e) => setFormData({ ...formData, craftFee: e.target.value === '' ? 0 : parseFloat(e.target.value) || 0 })}
                 className="w-full bg-white border border-gold-500/30 rounded-xl p-2.5 font-mono text-neutral-900 shadow-xs focus:border-gold-500 focus:outline-none"
                 required
               />
@@ -567,12 +646,12 @@ export default function AdminProductsPage() {
             </div>
           </div>
 
-          <div className="space-y-2 p-3 rounded-xl bg-[#FAF8F2] border border-gold-500/20">
+          <div className="space-y-2.5 p-3 sm:p-4 rounded-xl bg-[#FAF8F2] border border-gold-500/20">
             <label className="block text-xs font-bold text-neutral-800 uppercase">
               Product Jewelry Photo
             </label>
-            <div className="flex items-center gap-3">
-              <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-white border border-gold-500/30 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-white border border-gold-500/30 flex-shrink-0 self-center sm:self-auto">
                 {formData.images ? (
                   <img src={formData.images} alt="Product" className="w-full h-full object-cover" />
                 ) : (
@@ -581,7 +660,7 @@ export default function AdminProductsPage() {
                   </div>
                 )}
               </div>
-              <div className="flex-1 space-y-1">
+              <div className="flex-1 space-y-1 text-center sm:text-left">
                 <input
                   type="file"
                   ref={fileInputRef}
@@ -596,7 +675,7 @@ export default function AdminProductsPage() {
                   isLoading={isUploadingImage}
                   onClick={() => fileInputRef.current?.click()}
                   leftIcon={<Upload className="w-3.5 h-3.5" />}
-                  className="text-xs font-bold"
+                  className="w-full sm:w-auto text-xs font-bold justify-center"
                 >
                   {isUploadingImage ? 'Uploading Photo...' : 'Upload Image from Device'}
                 </Button>
@@ -613,13 +692,6 @@ export default function AdminProductsPage() {
             />
           </div>
 
-          <Input
-            label="Hallmark Assay Certificate Code"
-            value={formData.hallmarkCertNumber}
-            onChange={(e) => setFormData({ ...formData, hallmarkCertNumber: e.target.value })}
-            placeholder="e.g. DG-AU999-0091"
-          />
-
           <div>
             <label className="block text-xs font-bold text-neutral-800 uppercase mb-1">Description</label>
             <textarea
@@ -631,12 +703,13 @@ export default function AdminProductsPage() {
             />
           </div>
 
-          <div className="pt-4 flex justify-end gap-3 border-t border-neutral-200">
+          <div className="pt-4 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3 border-t border-neutral-200">
             <Button
               type="button"
               variant="secondary"
               size="md"
               onClick={() => setIsModalOpen(false)}
+              className="w-full sm:w-auto font-bold"
             >
               Cancel
             </Button>
@@ -645,7 +718,7 @@ export default function AdminProductsPage() {
               variant="primary"
               size="md"
               isLoading={isSubmitting}
-              className="font-bold"
+              className="w-full sm:w-auto font-bold"
             >
               {editingProduct ? 'Save Changes' : 'Create Product'}
             </Button>

@@ -312,12 +312,13 @@ export default function AdminCustomersPage() {
         />
       </div>
 
-      {/* Customers Table */}
-      <FadeInUp className="rounded-3xl bg-white border border-gold-500/30 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+      {/* Customers Table & Mobile Cards */}
+      <FadeInUp className="rounded-3xl theme-card overflow-hidden shadow-sm">
+        {/* Desktop Table */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-xs theme-table">
             <thead>
-              <tr className="border-b border-neutral-200 bg-[#FAF8F2] text-neutral-600 uppercase font-mono text-[11px]">
+              <tr className="border-b theme-table-header uppercase font-mono text-[11px]">
                 <th className="w-10 p-4 text-center">
                   <input
                     type="checkbox"
@@ -353,15 +354,15 @@ export default function AdminCustomersPage() {
                   </td>
                 </tr>
               ) : (
-                paginated.map((client) => {
+                paginated.map((client, idx) => {
                   const isSelected = selectedIds.includes(client.id);
 
                   return (
                     <tr
                       key={client.id}
-                      className={`hover:bg-neutral-50 transition-colors ${
-                        isSelected ? 'bg-gold-500/5' : ''
-                      }`}
+                      className={`theme-table-row transition-colors ${
+                        idx % 2 === 1 ? 'theme-table-row-alt' : ''
+                      } ${isSelected ? 'bg-gold-500/10' : ''}`}
                     >
                       <td className="w-10 p-4 text-center">
                         <input
@@ -451,6 +452,124 @@ export default function AdminCustomersPage() {
           </table>
         </div>
 
+        {/* Mobile Responsive Cards View */}
+        <div className="block md:hidden p-3 space-y-3">
+          {isLoading ? (
+            <div className="p-8 text-center text-xs text-neutral-500">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-gold-600" />
+              Loading customers...
+            </div>
+          ) : paginated.length === 0 ? (
+            <div className="p-8 text-center text-xs text-neutral-500">
+              <Users className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
+              No customers found matching your search.
+            </div>
+          ) : (
+            paginated.map((client) => {
+              const isSelected = selectedIds.includes(client.id);
+
+              return (
+                <div
+                  key={client.id}
+                  className="p-4 rounded-2xl border transition-all space-y-3"
+                  style={{
+                    backgroundColor: isSelected ? 'rgba(212,175,55,0.08)' : 'var(--theme-bg-card, #FFFFFF)',
+                    borderColor: isSelected ? 'var(--theme-primary, #D4AF37)' : 'var(--theme-border-card, #E8DFCA)',
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleSelect(client.id)}
+                        className="w-4 h-4 rounded border-neutral-300 text-gold-600 focus:ring-gold-500 cursor-pointer accent-gold-600"
+                      />
+                      {client.avatar ? (
+                        <img
+                          src={client.avatar}
+                          alt={client.name}
+                          className="w-10 h-10 rounded-full object-cover border border-gold-500/30 shadow-2xs flex-shrink-0"
+                        />
+                      ) : (
+                        <div
+                          className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-2xs"
+                          style={{
+                            backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                            color: 'var(--theme-primary, #D4AF37)',
+                          }}
+                        >
+                          {client.name?.[0] || 'C'}
+                        </div>
+                      )}
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-sm" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                            {client.name}
+                          </span>
+                          <Badge variant={client.role === 'ADMIN' ? 'gold' : 'slate'} size="sm">
+                            {client.role || 'CUSTOMER'}
+                          </Badge>
+                        </div>
+                        <span className="text-[10px] font-mono block mt-0.5" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                          ID: {client.id.slice(0, 10)}...
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEdit(client)}
+                        className="p-1.5 rounded-lg text-gold-700 hover:bg-gold-500/10 cursor-pointer"
+                        title="Edit Customer"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteCustomer(client.id, client.name)}
+                        className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer"
+                        title="Delete Customer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                    <div className="text-xs space-y-0.5">
+                      <p className="font-medium" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                        {client.email}
+                      </p>
+                      <p className="font-mono text-[11px]" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                        {client.phone || 'No phone recorded'}
+                      </p>
+                      <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary, #4A4A4A)' }}>
+                        📍 {client.city ? `${client.city}, ` : ''}{client.address || 'Philippines'}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                    <div>
+                      <Badge variant={client.activeLayaways > 0 ? 'gold' : 'slate'} size="sm">
+                        {client.activeLayaways || 0} Active Layaways
+                      </Badge>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] block" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                        Total Spent
+                      </span>
+                      <span className="font-mono font-black text-sm text-emerald-700">
+                        {formatCurrency(client.totalSpend || 0)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
         {/* Pagination Controls */}
         <Pagination
           currentPage={currentPage}
@@ -472,7 +591,7 @@ export default function AdminCustomersPage() {
         maxWidth="lg"
       >
         <form onSubmit={handleCreateCustomer} className="space-y-4 text-xs">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Full Name *</label>
               <input
@@ -497,7 +616,7 @@ export default function AdminCustomersPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Phone Number</label>
               <input
@@ -521,8 +640,8 @@ export default function AdminCustomersPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2">
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Street Address</label>
               <input
                 type="text"
@@ -544,12 +663,13 @@ export default function AdminCustomersPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-neutral-200">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-2 pt-3 border-t border-neutral-200">
             <Button
               type="button"
               variant="secondary"
               size="sm"
               onClick={() => setIsAddModalOpen(false)}
+              className="w-full sm:w-auto font-bold"
             >
               Cancel
             </Button>
@@ -558,7 +678,7 @@ export default function AdminCustomersPage() {
               variant="primary"
               size="sm"
               isLoading={isSubmitting}
-              className="font-bold"
+              className="w-full sm:w-auto font-bold"
             >
               Create Client
             </Button>
@@ -575,7 +695,7 @@ export default function AdminCustomersPage() {
         maxWidth="lg"
       >
         <form onSubmit={handleUpdateCustomer} className="space-y-4 text-xs">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Full Name *</label>
               <input
@@ -598,7 +718,7 @@ export default function AdminCustomersPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Phone Number</label>
               <input
@@ -621,8 +741,8 @@ export default function AdminCustomersPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2">
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Street Address</label>
               <input
                 type="text"
@@ -642,12 +762,13 @@ export default function AdminCustomersPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-neutral-200">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-2 pt-3 border-t border-neutral-200">
             <Button
               type="button"
               variant="secondary"
               size="sm"
               onClick={() => setIsEditModalOpen(false)}
+              className="w-full sm:w-auto font-bold"
             >
               Cancel
             </Button>
@@ -656,7 +777,7 @@ export default function AdminCustomersPage() {
               variant="primary"
               size="sm"
               isLoading={isSubmitting}
-              className="font-bold"
+              className="w-full sm:w-auto font-bold"
             >
               Save Changes
             </Button>

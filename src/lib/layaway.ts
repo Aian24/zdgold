@@ -1,7 +1,7 @@
 import { LayawayPlanOption } from './types';
 
 export const ALLOWED_DOWNPAYMENT_PERCENTS = [20, 30, 50];
-export const ALLOWED_LAYAWAY_TERMS = [3, 6, 9, 12]; // in months
+export const ALLOWED_LAYAWAY_TERMS = [1, 2, 3, 6, 9, 12]; // in months
 
 /**
  * Calculates a layaway installment plan given a total purchase amount,

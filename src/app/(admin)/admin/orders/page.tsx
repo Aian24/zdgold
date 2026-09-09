@@ -522,12 +522,13 @@ export default function AdminOrdersPage() {
         />
       </div>
 
-      {/* Data Table */}
-      <FadeInUp className="rounded-3xl bg-white border border-gold-500/30 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+      {/* Data Table & Mobile Cards */}
+      <FadeInUp className="rounded-3xl theme-card overflow-hidden shadow-sm">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
+          <table className="w-full text-xs theme-table">
             <thead>
-              <tr className="border-b border-neutral-200 bg-[#FAF8F2] text-neutral-600 uppercase font-mono text-[11px]">
+              <tr className="border-b theme-table-header uppercase font-mono text-[11px]">
                 <th className="w-10 p-4 text-center">
                   <input
                     type="checkbox"
@@ -562,7 +563,7 @@ export default function AdminOrdersPage() {
                   </td>
                 </tr>
               ) : (
-                paginated.map((order) => {
+                paginated.map((order, idx) => {
                   const isSelected = selectedIds.includes(order.id);
                   const itemCount = order.orderItems?.length || 0;
                   const firstItem = order.orderItems?.[0]?.product?.name || 'Gold Jewelry';
@@ -570,9 +571,9 @@ export default function AdminOrdersPage() {
                   return (
                     <tr
                       key={order.id}
-                      className={`hover:bg-neutral-50 transition-colors ${
-                        isSelected ? 'bg-gold-500/5' : ''
-                      }`}
+                      className={`theme-table-row transition-colors ${
+                        idx % 2 === 1 ? 'theme-table-row-alt' : ''
+                      } ${isSelected ? 'bg-gold-500/10' : ''}`}
                     >
                       <td className="w-10 p-4 text-center">
                         <input
@@ -683,6 +684,134 @@ export default function AdminOrdersPage() {
           </table>
         </div>
 
+        {/* Mobile Responsive Cards View */}
+        <div className="block md:hidden p-3 space-y-3">
+          {isLoading ? (
+            <div className="p-8 text-center text-xs text-neutral-500">
+              <RefreshCw className="w-6 h-6 animate-spin mx-auto mb-2 text-gold-600" />
+              Loading orders...
+            </div>
+          ) : paginated.length === 0 ? (
+            <div className="p-8 text-center text-xs text-neutral-500">
+              <ShoppingBag className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
+              No orders found matching your search.
+            </div>
+          ) : (
+            paginated.map((order) => {
+              const isSelected = selectedIds.includes(order.id);
+              const itemCount = order.orderItems?.length || 0;
+              const firstItem = order.orderItems?.[0]?.product?.name || 'Gold Jewelry';
+
+              return (
+                <div
+                  key={order.id}
+                  className="p-4 rounded-2xl border transition-all space-y-3"
+                  style={{
+                    backgroundColor: isSelected ? 'rgba(212,175,55,0.08)' : 'var(--theme-bg-card, #FFFFFF)',
+                    borderColor: isSelected ? 'var(--theme-primary, #D4AF37)' : 'var(--theme-border-card, #E8DFCA)',
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => handleToggleSelect(order.id)}
+                        className="w-4 h-4 rounded border-neutral-300 text-gold-600 focus:ring-gold-500 cursor-pointer accent-gold-600"
+                      />
+                      <div>
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-mono font-bold text-xs" style={{ color: 'var(--theme-primary, #D4AF37)' }}>
+                            {order.orderNumber}
+                          </span>
+                          <Badge
+                            variant={order.orderType === 'LAYAWAY' ? 'gold' : 'emerald'}
+                            size="sm"
+                          >
+                            {order.orderType}
+                          </Badge>
+                        </div>
+                        <span className="text-[10px] block mt-0.5" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                          {new Date(order.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handleOpenEditOrder(order)}
+                        className="p-1.5 rounded-lg text-gold-700 hover:bg-gold-500/10 cursor-pointer"
+                        title="Edit Order"
+                      >
+                        <Edit2 className="w-3.5 h-3.5" />
+                      </button>
+                      <Link href={`/invoice/${order.id}`}>
+                        <button
+                          className="p-1.5 rounded-lg text-neutral-600 hover:bg-neutral-100 cursor-pointer"
+                          title="View Invoice"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                        </button>
+                      </Link>
+                      <button
+                        onClick={() => handleDeleteOrder(order.id, order.orderNumber)}
+                        className="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50 cursor-pointer"
+                        title="Delete Order"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                    <div className="flex justify-between items-start text-xs">
+                      <div>
+                        <span className="font-bold block" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                          {order.user?.name || 'Walk-In Customer'}
+                        </span>
+                        <span className="text-[11px] font-mono" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                          {order.user?.phone || order.user?.email || 'No contact'}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[11px] block" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                          {order.totalGoldWeightGrams ? `${order.totalGoldWeightGrams}g Gold` : ''}
+                        </span>
+                        <span className="font-mono font-black text-sm" style={{ color: 'var(--theme-text-primary, #171717)' }}>
+                          {formatCurrency(order.totalAmount)}
+                        </span>
+                      </div>
+                    </div>
+                    <p className="text-[11px] mt-1 line-clamp-1" style={{ color: 'var(--theme-text-secondary, #4A4A4A)' }}>
+                      {firstItem} {itemCount > 1 ? `+${itemCount - 1} more items` : ''}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t" style={{ borderColor: 'var(--theme-border-card, #E8DFCA)' }}>
+                    <div className="text-[10px] truncate" style={{ color: 'var(--theme-text-muted, #787878)' }}>
+                      {order.courier || 'Counter Handover'} {order.trackingNumber ? `• ${order.trackingNumber}` : ''}
+                    </div>
+
+                    <select
+                      value={order.status}
+                      disabled={updatingId === order.id}
+                      onChange={(e) => handleQuickUpdateStatus(order.id, e.target.value)}
+                      className="bg-neutral-50 border border-neutral-300 rounded-lg px-2 py-1 text-[11px] font-bold text-neutral-900 focus:border-gold-500 cursor-pointer shadow-2xs"
+                    >
+                      <option value="PENDING">PENDING</option>
+                      <option value="CONFIRMED">CONFIRMED</option>
+                      <option value="PROCESSING">PROCESSING</option>
+                      <option value="SHIPPED">SHIPPED</option>
+                      <option value="DELIVERED">DELIVERED</option>
+                      <option value="CANCELLED">CANCELLED</option>
+                    </select>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
         {/* Pagination Controls */}
         <Pagination
           currentPage={currentPage}
@@ -704,7 +833,7 @@ export default function AdminOrdersPage() {
         maxWidth="lg"
       >
         <form onSubmit={handleSaveEditOrder} className="space-y-4 text-xs">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Customer Name</label>
               <input
@@ -726,7 +855,7 @@ export default function AdminOrdersPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Email Address</label>
               <input
@@ -760,7 +889,7 @@ export default function AdminOrdersPage() {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="text-[11px] font-bold text-neutral-700 block mb-1">Order Status</label>
               <select
@@ -798,12 +927,13 @@ export default function AdminOrdersPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-neutral-200">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 border-t border-neutral-200">
             <Button
               type="button"
               variant="secondary"
               size="sm"
               onClick={() => setIsEditModalOpen(false)}
+              className="w-full sm:w-auto font-bold"
             >
               Cancel
             </Button>
@@ -812,7 +942,7 @@ export default function AdminOrdersPage() {
               variant="primary"
               size="sm"
               isLoading={isSavingEdit}
-              className="font-bold"
+              className="w-full sm:w-auto font-bold"
             >
               Save Order Changes
             </Button>
@@ -1049,9 +1179,10 @@ export default function AdminOrdersPage() {
                     </label>
                     <select
                       value={termMonths}
-                      onChange={(e) => setTermMonths(parseInt(e.target.value) || 2)}
+                      onChange={(e) => setTermMonths(parseInt(e.target.value) || 1)}
                       className="w-full bg-neutral-50 border border-neutral-300 rounded-lg p-1.5 text-xs font-bold text-gold-700"
                     >
+                      <option value={1}>1 Month Plan</option>
                       <option value={2}>2 Months Plan</option>
                       <option value={3}>3 Months Plan</option>
                       <option value={4}>4 Months Plan</option>
@@ -1151,7 +1282,7 @@ export default function AdminOrdersPage() {
           </div>
 
           {/* Payment Method & Initial Status */}
-          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-neutral-200">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-neutral-200">
             <div>
               <label className="text-[10px] text-neutral-500 block mb-1 font-bold">Initial Dispatch Status</label>
               <select
@@ -1181,12 +1312,13 @@ export default function AdminOrdersPage() {
             </div>
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-neutral-200">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-2 pt-3 border-t border-neutral-200">
             <Button
               type="button"
               variant="secondary"
               size="sm"
               onClick={() => setIsCreateModalOpen(false)}
+              className="w-full sm:w-auto font-bold"
             >
               Cancel
             </Button>
@@ -1195,7 +1327,7 @@ export default function AdminOrdersPage() {
               variant="primary"
               size="sm"
               isLoading={isSubmitting}
-              className="font-bold"
+              className="w-full sm:w-auto font-bold"
             >
               {orderType === 'LAYAWAY' ? `Create ${termMonths}-Month Layaway Order` : 'Create Cash Order'}
             </Button>

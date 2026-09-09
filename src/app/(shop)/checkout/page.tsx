@@ -300,8 +300,8 @@ function CheckoutContent() {
                       <label className="block text-xs font-bold text-neutral-800 uppercase mb-1">
                         Terms
                       </label>
-                      <div className="grid grid-cols-4 gap-1.5">
-                        {[3, 6, 9, 12].map((m) => (
+                      <div className="grid grid-cols-5 gap-1.5">
+                        {[1, 3, 6, 9, 12].map((m) => (
                           <button
                             type="button"
                             key={m}

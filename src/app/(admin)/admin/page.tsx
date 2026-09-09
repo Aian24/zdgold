@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  TrendingUp,
   DollarSign,
   Lock,
   Scale,
@@ -14,7 +13,6 @@ import {
   BarChart3,
   Layers,
   ArrowUpRight,
-  PackageCheck,
   AlertCircle,
 } from 'lucide-react';
 import { formatCurrency, formatGrams } from '@/lib/gold-pricing';
@@ -22,22 +20,60 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { FadeInUp, StaggerContainer, StaggerItem } from '@/components/animations/Motion';
 
+const DEFAULT_ANALYTICS = {
+  totalCollectedRevenue: 0,
+  totalGoldGramsSold: 0,
+  totalOrdersCount: 0,
+  activeLayawayContractsCount: 0,
+  completedLayawayContractsCount: 0,
+  totalLayawayReceivables: 0,
+  totalLayawayContractValue: 0,
+  overdueInstallmentsCount: 0,
+  productCount: 0,
+  customerCount: 0,
+  lowStockCount: 0,
+  recentPayments: [],
+  monthlySales: [
+    { month: 'Jan', fullMonth: 'January', year: 2026, upfront: 0, layaway: 0, total: 0 },
+    { month: 'Feb', fullMonth: 'February', year: 2026, upfront: 0, layaway: 0, total: 0 },
+    { month: 'Mar', fullMonth: 'March', year: 2026, upfront: 0, layaway: 0, total: 0 },
+    { month: 'Apr', fullMonth: 'April', year: 2026, upfront: 0, layaway: 0, total: 0 },
+    { month: 'May', fullMonth: 'May', year: 2026, upfront: 0, layaway: 0, total: 0 },
+    { month: 'Jun', fullMonth: 'June', year: 2026, upfront: 0, layaway: 0, total: 0 },
+  ],
+  peakMonth: { name: 'N/A', amount: 0 },
+  momGrowthText: '+0.0% MoM Growth',
+  categorySales: [
+    { name: 'Fine Gold Jewelry', category: 'JEWELRY', count: 0, value: 0, percentage: 100, color: '#D4AF37' },
+  ],
+  totalCatalogVolume: 0,
+};
+
 export default function AdminDashboardPage() {
   const [analytics, setAnalytics] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [hoveredBarIndex, setHoveredBarIndex] = useState<number | null>(null);
   const [hoveredCategory, setHoveredCategory] = useState<string | null>(null);
 
   const fetchAnalytics = async () => {
     setIsLoading(true);
+    setFetchError(null);
     try {
-      const res = await fetch('/api/analytics');
-      const data = await res.json();
-      if (data.success) {
-        setAnalytics(data.analytics);
+      const res = await fetch('/api/analytics', { cache: 'no-store' });
+      if (!res.ok) {
+        throw new Error(`Server returned HTTP ${res.status}`);
       }
-    } catch (e) {
-      console.error('Failed to load admin analytics', e);
+      const data = await res.json();
+      if (data.success && data.analytics) {
+        setAnalytics(data.analytics);
+      } else {
+        throw new Error(data.error || 'Failed to parse analytics');
+      }
+    } catch (e: any) {
+      console.error('Failed to load admin analytics:', e);
+      setFetchError(e.message || 'Failed to load dashboard data');
+      setAnalytics((prev: any) => prev || DEFAULT_ANALYTICS);
     } finally {
       setIsLoading(false);
     }
@@ -47,23 +83,26 @@ export default function AdminDashboardPage() {
     fetchAnalytics();
   }, []);
 
-  if (isLoading || !analytics) {
+  if (isLoading && !analytics) {
     return (
-      <div className="py-24 text-center">
+      <div className="py-24 text-center space-y-4">
         <motion.div
           animate={{ rotate: 360 }}
           transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-          className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full mx-auto mb-4"
+          className="w-10 h-10 border-2 border-gold-500 border-t-transparent rounded-full mx-auto shadow-sm"
         />
-        <p className="text-sm text-neutral-500 font-semibold">Loading Live Dashboard Analytics...</p>
+        <div className="space-y-1">
+          <p className="text-sm text-neutral-800 font-bold">Loading Live Dashboard Analytics...</p>
+          <p className="text-xs text-neutral-400">Fetching live jewelry catalog, ledger orders & collections</p>
+        </div>
       </div>
     );
   }
 
-  const monthlySales = analytics.monthlySales || [];
+  const currentData = analytics || DEFAULT_ANALYTICS;
+  const monthlySales = currentData.monthlySales || [];
   const maxMonthlyRevenue = Math.max(...monthlySales.map((s: any) => s.total || 0), 1);
-  const categorySales = analytics.categorySales || [];
-  const karatBreakdown = analytics.karatBreakdown || [];
+  const categorySales = currentData.categorySales || [];
 
   return (
     <div className="space-y-8 overflow-hidden">
@@ -87,7 +126,8 @@ export default function AdminDashboardPage() {
               variant="secondary"
               size="sm"
               onClick={fetchAnalytics}
-              leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+              isLoading={isLoading}
+              leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin' : ''}`} />}
               className="text-xs font-bold"
             >
               Refresh
@@ -102,6 +142,19 @@ export default function AdminDashboardPage() {
           </Link>
         </div>
       </FadeInUp>
+
+      {/* Error Alert Banner if any */}
+      {fetchError && (
+        <FadeInUp className="p-4 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-between gap-3 text-amber-900 text-xs">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0" />
+            <span>Could not load the latest live data: {fetchError}. Showing cached overview.</span>
+          </div>
+          <Button variant="secondary" size="sm" onClick={fetchAnalytics} className="text-xs font-bold flex-shrink-0">
+            Retry
+          </Button>
+        </FadeInUp>
+      )}
 
       {/* KPI Stats Grid with Stagger Entrance */}
       <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -119,11 +172,11 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="text-2xl sm:text-3xl font-black text-neutral-900 font-mono">
-                {formatCurrency(analytics.totalCollectedRevenue || 0)}
+                {formatCurrency(currentData.totalCollectedRevenue || 0)}
               </div>
               <span className="text-[11px] text-emerald-700 block font-bold flex items-center gap-1">
                 <ArrowUpRight className="w-3.5 h-3.5" />
-                {analytics.totalOrdersCount || 0} Total Orders
+                {currentData.totalOrdersCount || 0} Total Orders
               </span>
             </motion.div>
           </Link>
@@ -143,10 +196,10 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="text-2xl sm:text-3xl font-black text-gold-700 font-mono">
-                {formatCurrency(analytics.totalLayawayReceivables || 0)}
+                {formatCurrency(currentData.totalLayawayReceivables || 0)}
               </div>
               <span className="text-[11px] text-neutral-500 block font-medium">
-                {analytics.activeLayawayContractsCount || 0} Active Locked Contracts
+                {currentData.activeLayawayContractsCount || 0} Active Locked Contracts
               </span>
             </motion.div>
           </Link>
@@ -166,10 +219,10 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="text-2xl sm:text-3xl font-black text-neutral-900 font-mono">
-                {formatGrams(analytics.totalGoldGramsSold || 0)}
+                {formatGrams(currentData.totalGoldGramsSold || 0)}
               </div>
               <span className="text-[11px] text-neutral-500 block font-medium">
-                {analytics.productCount || 0} Products in Catalog
+                {currentData.productCount || 0} Products in Catalog
               </span>
             </motion.div>
           </Link>
@@ -189,7 +242,7 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="text-2xl sm:text-3xl font-black text-neutral-900 font-mono">
-                {analytics.customerCount || 0}
+                {currentData.customerCount || 0}
               </div>
               <span className="text-[11px] text-neutral-500 block font-medium">
                 Active Client Accounts
@@ -294,12 +347,12 @@ export default function AdminDashboardPage() {
             <span>
               Peak Month:{' '}
               <b>
-                {analytics.peakMonth?.name || 'N/A'}{' '}
-                ({formatCurrency(analytics.peakMonth?.amount || 0)})
+                {currentData.peakMonth?.name || 'N/A'}{' '}
+                ({formatCurrency(currentData.peakMonth?.amount || 0)})
               </b>
             </span>
             <span className="text-emerald-700 font-bold font-mono">
-              {analytics.momGrowthText || '+0.0% MoM Growth'}
+              {currentData.momGrowthText || '+0.0% MoM Growth'}
             </span>
           </div>
         </FadeInUp>
@@ -389,101 +442,13 @@ export default function AdminDashboardPage() {
           <div className="pt-3 border-t border-neutral-100 flex justify-between text-xs text-neutral-500 font-mono">
             <span>Total Catalog Value</span>
             <span className="font-bold text-neutral-900">
-              {formatCurrency(analytics.totalCatalogVolume || analytics.totalCategoryValue || 0)}
+              {formatCurrency(currentData.totalCatalogVolume || currentData.totalCategoryValue || 0)}
             </span>
           </div>
         </FadeInUp>
       </div>
 
-      {/* 3. KARAT PURITY & LIVE GOLD RATES SECTION */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Karat Distribution Horizontal Graph */}
-        <FadeInUp className="lg:col-span-6 rounded-3xl bg-white border border-gold-500/30 p-6 space-y-4 shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-            <h3 className="text-sm font-bold text-neutral-900 uppercase tracking-wider flex items-center gap-2">
-              <Scale className="w-4 h-4 text-gold-600" />
-              Gold Purity & Karat Distribution
-            </h3>
-            <span className="text-xs text-neutral-500 font-mono">Mass Share</span>
-          </div>
-
-          <div className="space-y-3 pt-1">
-            {karatBreakdown.length === 0 ? (
-              <p className="text-xs text-neutral-400 py-4 text-center font-mono">
-                No gold stock registered in database.
-              </p>
-            ) : (
-              karatBreakdown.map((k: any, idx: number) => (
-                <div key={k.karat} className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="font-bold text-neutral-900 font-mono">
-                      {k.karat} Solid Gold ({k.label})
-                    </span>
-                    <span className="font-mono font-bold text-gold-700">
-                      {formatGrams(k.grams)} ({k.percentage}%)
-                    </span>
-                  </div>
-                  <div className="w-full h-2.5 rounded-full bg-neutral-100 overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${k.percentage}%` }}
-                      transition={{ duration: 0.7, delay: idx * 0.12, ease: 'easeOut' }}
-                      className="h-full rounded-full bg-gradient-to-r from-gold-400 to-gold-600"
-                    />
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-        </FadeInUp>
-
-        {/* Live Gold Spot Rates Applied */}
-        <FadeInUp className="lg:col-span-6 rounded-3xl bg-white border border-gold-500/30 p-6 space-y-4 shadow-sm">
-          <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4 text-gold-600" />
-              <h3 className="text-sm font-bold text-neutral-900 uppercase tracking-wider">
-                Live Gold Spot Rates
-              </h3>
-            </div>
-            <Link
-              href="/admin/rates"
-              className="text-xs font-bold text-gold-700 hover:text-gold-900 flex items-center gap-1 group"
-            >
-              <span>Edit Rates</span>
-              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
-            {analytics.spotRates?.length === 0 ? (
-              <div className="col-span-3 py-6 text-center text-xs text-neutral-400 font-mono">
-                No spot rates configured.
-              </div>
-            ) : (
-              analytics.spotRates?.slice(0, 6).map((rate: any) => (
-                <motion.div
-                  key={rate.karat}
-                  whileHover={{ y: -2, transition: { duration: 0.15 } }}
-                  className="bg-[#FAF8F2] p-3 rounded-2xl border border-gold-500/20"
-                >
-                  <span className="text-xs font-mono font-bold text-gold-700 block">{rate.karat} Rate:</span>
-                  <div className="text-base font-black text-neutral-900 font-mono mt-0.5">
-                    {formatCurrency(rate.pricePerGram)}/g
-                  </div>
-                  <span className={`text-[10px] font-mono font-bold ${
-                    rate.change24h >= 0 ? 'text-emerald-700' : 'text-rose-600'
-                  }`}>
-                    {rate.change24h >= 0 ? '+' : ''}{rate.change24h}% (24h)
-                  </span>
-                </motion.div>
-              ))
-            )}
-          </div>
-        </FadeInUp>
-      </div>
-
-      {/* 4. RECENT AUDIT TRANSACTIONS TABLE */}
+      {/* 3. RECENT AUDIT TRANSACTIONS TABLE */}
       <FadeInUp className="rounded-3xl bg-white border border-gold-500/30 p-6 md:p-8 space-y-4 shadow-sm">
         <div className="flex items-center justify-between pb-3 border-b border-neutral-100">
           <div>
@@ -514,14 +479,14 @@ export default function AdminDashboardPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100">
-              {(!analytics.recentPayments || analytics.recentPayments.length === 0) ? (
+              {(!currentData.recentPayments || currentData.recentPayments.length === 0) ? (
                 <tr>
                   <td colSpan={6} className="py-8 text-center text-neutral-400 font-mono">
                     No recent payments or layaway deposits recorded yet.
                   </td>
                 </tr>
               ) : (
-                analytics.recentPayments.map((payment: any) => (
+                currentData.recentPayments.map((payment: any) => (
                   <tr key={payment.id} className="hover:bg-neutral-50 transition-colors">
                     <td className="py-3 font-mono font-bold text-gold-700">
                       {payment.invoiceNumber || payment.paymentNumber}

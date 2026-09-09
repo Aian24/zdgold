@@ -12,13 +12,217 @@
     --gold: #C59B27;
     --gold-light: #F4E297;
     --gold-dark: #8C6A15;
+
+    /* Dynamic Theme Defaults */
+    --theme-bg-main: #FCFCF9;
+    --theme-bg-card: #FFFFFF;
+    --theme-border-card: #E8DFCA;
+    --theme-card-radius: 16px;
+    --theme-card-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+
+    --theme-sidebar-bg: #FFFFFF;
+    --theme-sidebar-text: #1A1A1A;
+    --theme-topbar-bg: #FFFFFF;
+
+    --theme-text-primary: #171717;
+    --theme-text-secondary: #4A4A4A;
+    --theme-text-muted: #787878;
+
+    --theme-primary: #D4AF37;
+    --theme-primary-hover: #C59B27;
+    --theme-primary-text: #FFFFFF;
+    --theme-accent: #B8860B;
+
+    --theme-table-header-bg: #FAF8F2;
+    --theme-table-header-text: #785E1E;
+    --theme-table-row-bg: #FFFFFF;
+    --theme-table-row-alt: #FCFBF8;
+    --theme-table-row-hover: #F7F3E8;
+    --theme-table-border: #EFE7D5;
+    --theme-table-text: #1F1F1F;
+
+    --theme-font-heading: 'Playfair Display', Georgia, serif;
+    --theme-font-body: 'Outfit', sans-serif;
+    --theme-font-size-base: 14px;
+    --theme-font-size-h1-scale: 1.0;
+    --theme-font-size-table: 12px;
+    --theme-heading-weight: 800;
+    --theme-heading-spacing: 0.03em;
+    --theme-heading-transform: none;
   }
 
   body {
-    background-color: var(--background);
-    color: var(--foreground);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background-color: var(--theme-bg-main, #FCFCF9) !important;
+    color: var(--theme-text-primary, #1A1A1A) !important;
+    font-family: var(--theme-font-body, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
+    font-size: var(--theme-font-size-base, 14px) !important;
     overflow-x: hidden;
+  }
+
+  /* ==========================================================================
+     GLOBAL THEME BINDINGS (Storefront, Admin, Tables, Cards, Fonts)
+     ========================================================================== */
+
+  /* 1. Global Headings, Fonts, Weights, Letter-Spacing */
+  h1, h2, h3, h4, h5, h6, .font-serif, [class*="font-serif"] {
+    font-family: var(--theme-font-heading, 'Playfair Display', Georgia, serif) !important;
+    letter-spacing: var(--theme-heading-spacing, 0.03em);
+    text-transform: var(--theme-heading-transform, none);
+  }
+
+  h1, .text-3xl, .text-4xl, .text-5xl {
+    font-weight: var(--theme-heading-weight, 800);
+  }
+
+  h2, h3 {
+    font-weight: calc(var(--theme-heading-weight, 800) - 100);
+  }
+
+  /* 2. Global Text Colors */
+  .text-neutral-900,
+  .text-neutral-800,
+  .text-slate-900,
+  .text-gray-900 {
+    color: var(--theme-text-primary, #171717) !important;
+  }
+
+  .text-neutral-700,
+  .text-neutral-600,
+  .text-slate-700,
+  .text-slate-600,
+  .text-gray-700,
+  .text-gray-600 {
+    color: var(--theme-text-secondary, #4A4A4A) !important;
+  }
+
+  .text-neutral-500,
+  .text-neutral-400,
+  .text-slate-500,
+  .text-slate-400,
+  .text-gray-500 {
+    color: var(--theme-text-muted, #787878) !important;
+  }
+
+  /* 3. Global Card & Container Backgrounds */
+  .theme-card,
+  .bg-white:not(.no-theme-override),
+  div[class*="bg-white"]:not(.no-theme-override) {
+    background-color: var(--theme-bg-card, #FFFFFF) !important;
+    border-color: var(--theme-border-card, #E8DFCA) !important;
+  }
+
+  /* 4. Global Sidebar & Navigation Shell */
+  aside,
+  aside.bg-white {
+    background-color: var(--theme-sidebar-bg, #FFFFFF) !important;
+    color: var(--theme-sidebar-text, #1A1A1A) !important;
+    border-color: var(--theme-border-card, #E8DFCA) !important;
+  }
+
+  /* 5. Global Brand Accents & Gold Highlights */
+  .bg-gold-500,
+  .bg-gold-600,
+  .theme-primary-bg {
+    background-color: var(--theme-primary, #D4AF37) !important;
+  }
+
+  .text-gold-500,
+  .text-gold-600,
+  .text-gold-700,
+  .text-gold-800,
+  .theme-primary-text {
+    color: var(--theme-primary, #D4AF37) !important;
+  }
+
+  .border-gold-500,
+  .border-gold-500\/20,
+  .border-gold-500\/30,
+  .border-gold-500\/40,
+  .theme-primary-border {
+    border-color: var(--theme-border-card, #E8DFCA) !important;
+  }
+
+  /* Form Inputs Dynamic Theming */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),
+  select,
+  textarea {
+    background-color: var(--theme-bg-card, #FFFFFF) !important;
+    color: var(--theme-text-primary, #171717) !important;
+    border-color: var(--theme-border-card, #E8DFCA) !important;
+  }
+
+  /* 6. Dynamic Table Theming */
+  table thead tr,
+  table thead th,
+  .theme-table-header {
+    background-color: var(--theme-table-header-bg, #FAF8F2) !important;
+    color: var(--theme-table-header-text, #785E1E) !important;
+    border-color: var(--theme-table-border, #EFE7D5) !important;
+    font-size: var(--theme-font-size-table, 12px) !important;
+  }
+
+  table tbody tr,
+  .theme-table-row {
+    background-color: var(--theme-table-row-bg, #FFFFFF) !important;
+    color: var(--theme-table-text, #1F1F1F) !important;
+    border-color: var(--theme-table-border, #EFE7D5) !important;
+    font-size: var(--theme-font-size-table, 12px) !important;
+    transition: background-color 0.15s ease;
+  }
+
+  table tbody tr:nth-child(even),
+  .theme-table-row-alt {
+    background-color: var(--theme-table-row-alt, #FCFBF8) !important;
+  }
+
+  table tbody tr:hover,
+  .theme-table-row:hover {
+    background-color: var(--theme-table-row-hover, #F7F3E8) !important;
+  }
+
+  /* 7. Dynamic Button Theming */
+  button:not(.swal2-confirm):not(.swal2-cancel):not(.no-theme-radius) {
+    border-radius: var(--theme-btn-radius, 12px);
+  }
+
+  .theme-btn-primary {
+    background-color: var(--theme-btn-primary-bg, var(--theme-primary, #D4AF37)) !important;
+    color: var(--theme-btn-primary-text, var(--theme-primary-text, #FFFFFF)) !important;
+    border-radius: var(--theme-btn-radius, 12px) !important;
+    transition: all 0.2s ease;
+  }
+
+  .theme-btn-primary:hover:not(:disabled) {
+    background-color: var(--theme-btn-primary-hover, var(--theme-primary-hover, #C59B27)) !important;
+    box-shadow: 0 4px 14px var(--theme-btn-primary-bg, #D4AF37)40;
+    transform: translateY(-1px);
+  }
+
+  .theme-btn-secondary {
+    background-color: var(--theme-btn-secondary-bg, #FFFFFF) !important;
+    color: var(--theme-btn-secondary-text, var(--theme-text-primary, #171717)) !important;
+    border-color: var(--theme-btn-secondary-border, var(--theme-border-card, #E8DFCA)) !important;
+    border-radius: var(--theme-btn-radius, 12px) !important;
+    transition: all 0.2s ease;
+  }
+
+  .theme-btn-secondary:hover:not(:disabled) {
+    border-color: var(--theme-primary, #D4AF37) !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transform: translateY(-1px);
+  }
+
+  .theme-btn-danger {
+    background-color: var(--theme-btn-danger-bg, #DC2626) !important;
+    color: #FFFFFF !important;
+    border-radius: var(--theme-btn-radius, 12px) !important;
+    transition: all 0.2s ease;
+  }
+
+  .theme-btn-danger:hover:not(:disabled) {
+    filter: brightness(0.9);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35);
+    transform: translateY(-1px);
   }
 
   /* Luxury scrollbar */
@@ -27,14 +231,14 @@
     height: 7px;
   }
   ::-webkit-scrollbar-track {
-    background: #F5F3ED;
+    background: var(--theme-bg-main, #F5F3ED);
   }
   ::-webkit-scrollbar-thumb {
-    background: #D4AF37;
+    background: var(--theme-primary, #D4AF37);
     border-radius: 4px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #B89228;
+    background: var(--theme-primary-hover, #B89228);
   }
 }
 

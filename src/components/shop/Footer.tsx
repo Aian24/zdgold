@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck, Award, Lock, Scale } from 'lucide-react';
+import { Award, Lock, Scale } from 'lucide-react';
 import { useSettings } from '@/lib/store';
 
 export const Footer: React.FC = () => {
@@ -12,7 +12,7 @@ export const Footer: React.FC = () => {
     <footer className="bg-white border-t border-gold-500/25 pt-16 pb-24 md:pb-12 text-neutral-600">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Trust Guarantees Bar */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 pb-12 mb-12 border-b border-gold-500/15">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pb-12 mb-12 border-b border-gold-500/15">
           <div className="flex items-start gap-3.5">
             <div className="p-2.5 rounded-xl bg-gold-500/15 text-gold-700 border border-gold-500/30">
               <Award className="w-5 h-5" />
@@ -30,16 +30,6 @@ export const Footer: React.FC = () => {
             <div>
               <h4 className="text-sm font-bold text-neutral-900 uppercase tracking-wide">Price-Lock Layaway</h4>
               <p className="text-xs text-neutral-500 mt-1">Lock in spot rates today with 0% interest monthly terms.</p>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3.5">
-            <div className="p-2.5 rounded-xl bg-gold-500/15 text-gold-700 border border-gold-500/30">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-neutral-900 uppercase tracking-wide">Armored Vault Delivery</h4>
-              <p className="text-xs text-neutral-500 mt-1">100% insured high-security courier dispatch with tracking.</p>
             </div>
           </div>
 

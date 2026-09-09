@@ -110,8 +110,8 @@ export const LayawaySimulator: React.FC<LayawaySimulatorProps> = ({
               {termMonths} Months
             </span>
           </label>
-          <div className="grid grid-cols-4 gap-1.5">
-            {[3, 6, 9, 12].map((months) => {
+          <div className="grid grid-cols-5 gap-1.5">
+            {[1, 3, 6, 9, 12].map((months) => {
               const isSelected = termMonths === months;
               return (
                 <motion.button
@@ -119,7 +119,7 @@ export const LayawaySimulator: React.FC<LayawaySimulatorProps> = ({
                   type="button"
                   whileTap={{ scale: 0.94 }}
                   onClick={() => setTermMonths(months)}
-                  className={`relative py-1.5 px-1.5 rounded-lg text-xs font-bold transition-colors border cursor-pointer ${
+                  className={`relative py-1.5 px-1 rounded-lg text-xs font-bold transition-colors border cursor-pointer ${
                     isSelected
                       ? 'text-white border-gold-500 shadow-2xs'
                       : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-gold-500'
