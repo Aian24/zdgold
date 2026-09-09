@@ -1,0 +1,177 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model SiteSettings {
+  id              String   @id @default("default_settings")
+  companyName     String   @default("DANICA GOLD")
+  tagline         String   @default("Haute Joaillerie & Fine Gold")
+  logoUrl         String?  @default("")
+  phone           String   @default("+1 (555) 888-GOLD")
+  email           String   @default("contact@danicagold.com")
+  address         String   @default("5th Avenue Flagship & Vault, New York, NY 10001")
+  currencySymbol  String   @default("$")
+  goldAccentColor String   @default("#D4AF37")
+  updatedAt       DateTime @default(now()) @updatedAt
+}
+
+model User {
+  id               String            @id @default(cuid())
+  email            String            @unique
+  name             String
+  phone            String?
+  password         String?           @default("Aianbasagre24")
+  role             String            @default("CUSTOMER") // CUSTOMER, ADMIN
+  address          String?
+  city             String?
+  zipCode          String?
+  avatar           String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  orders           Order[]
+  layawayContracts LayawayContract[]
+  payments         Payment[]
+}
+
+model Product {
+  id                 String      @id @default(cuid())
+  name               String
+  slug               String      @unique
+  description        String
+  category           String      // RINGS, NECKLACES, BRACELETS, BANGLES, EARRINGS, PENDANTS
+  karat              String      // 10K, 14K, 18K, 22K, 24K
+  purityPercentage   Float       // e.g. 0.999 for 24K, 0.750 for 18K
+  weightGrams        Float
+  craftFee           Float       // Making charge in USD
+  basePrice          Float       // Current computed or fixed item price
+  isAutoPriced       Boolean     @default(true) // Dynamic calculation based on live gold rates
+  stockQuantity      Int         @default(10)
+  isFeatured         Boolean     @default(false)
+  images             String      // JSON array of image URLs
+  hallmarkCertNumber String?     // Official purity hallmark certificate code
+  dimensions         String?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  orderItems         OrderItem[]
+}
+
+model GoldRate {
+  id           String   @id @default(cuid())
+  karat        String   @unique // 24K, 22K, 18K, 14K, 10K
+  purityRatio  Float    // 0.999, 0.916, 0.750, 0.585, 0.417
+  pricePerGram Float    // Price in USD
+  change24h    Float    @default(0.0) // Percentage change in 24h
+  lastUpdated  DateTime @default(now()) @updatedAt
+}
+
+model Order {
+  id                   String           @id @default(cuid())
+  orderNumber          String           @unique // e.g. DG-2026-001
+  userId               String
+  user                 User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderType            String           @default("CASH") // CASH, LAYAWAY
+  status               String           @default("PENDING") // PENDING, CONFIRMED, PROCESSING, SHIPPED, DELIVERED, CANCELLED
+  totalGoldWeightGrams Float
+  subtotal             Float
+  craftFeeTotal        Float
+  tax                  Float            @default(0)
+  totalAmount          Float
+  shippingAddress      String
+  city                 String?
+  postalCode           String?
+  trackingNumber       String?
+  courier              String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+  orderItems           OrderItem[]
+  layawayContract      LayawayContract?
+  payments             Payment[]
+}
+
+model OrderItem {
+  id                     String  @id @default(cuid())
+  orderId                String
+  order                  Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId              String
+  product                Product @relation(fields: [productId], references: [id])
+  quantity               Int     @default(1)
+  lockedGoldPricePerGram Float
+  karat                  String
+  weightGrams            Float
+  craftFee               Float
+  unitPrice              Float
+  totalPrice             Float
+}
+
+model LayawayContract {
+  id                 String        @id @default(cuid())
+  contractNumber     String        @unique // e.g. LAY-2026-001
+  orderId            String        @unique
+  order              Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  userId             String
+  user               User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalAmount        Float
+  downPaymentAmount  Float
+  downPaymentPercent Float         // e.g. 20, 30, 50
+  remainingBalance   Float
+  termMonths         Int           // 3, 6, 9, 12
+  monthlyInstallment Float
+  lockedGoldSpotRate Float         // Locked spot rate per gram at contract creation
+  status             String        @default("ACTIVE") // ACTIVE, COMPLETED, DEFAULTED, CANCELLED
+  startDate          DateTime      @default(now())
+  dueDate            DateTime
+  nextDueDate        DateTime?
+  notes              String?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  installments       Installment[]
+  payments           Payment[]
+}
+
+model Installment {
+  id                String          @id @default(cuid())
+  contractId        String
+  contract          LayawayContract @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  installmentNumber Int
+  dueDate           DateTime
+  amountDue         Float
+  amountPaid        Float           @default(0)
+  status            String          @default("PENDING") // PENDING, PAID, OVERDUE, PARTIAL
+  paidAt            DateTime?
+  receiptNumber     String?
+  payments          Payment[]
+}
+
+model Payment {
+  id            String           @id @default(cuid())
+  paymentNumber String           @unique // e.g. PAY-2026-001
+  invoiceNumber String           // e.g. INV-2026-001
+  userId        String
+  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderId       String?
+  order         Order?           @relation(fields: [orderId], references: [id])
+  contractId    String?
+  contract      LayawayContract? @relation(fields: [contractId], references: [id])
+  installmentId String?
+  installment   Installment?     @relation(fields: [installmentId], references: [id])
+  amount        Float
+  paymentMethod String           @default("CREDIT_CARD") // CREDIT_CARD, BANK_TRANSFER, CASH, GCASH, CRYPTO
+  paymentType   String           // FULL_ORDER, DOWN_PAYMENT, INSTALLMENT, SETTLEMENT
+  status        String           @default("SUCCESS") // SUCCESS, PENDING, FAILED
+  referenceCode String
+  notes         String?
+  createdAt     DateTime         @default(now())
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  action      String
+  details     String
+  adminUserId String?
+  createdAt   DateTime @default(now())
+}

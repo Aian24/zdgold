@@ -1,0 +1,262 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #FCFCF9;
+    --foreground: #1A1A1A;
+    --card: #FFFFFF;
+    --card-foreground: #1A1A1A;
+    --border: #E8DFCA;
+    --gold: #C59B27;
+    --gold-light: #F4E297;
+    --gold-dark: #8C6A15;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Luxury scrollbar */
+  ::-webkit-scrollbar {
+    width: 7px;
+    height: 7px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F5F3ED;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #D4AF37;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #B89228;
+  }
+}
+
+/* Luxury White & Gold styling utilities */
+.gold-text-gradient {
+  background: linear-gradient(135deg, #B8860B 0%, #D4AF37 50%, #996515 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.gold-border-gradient {
+  border-image: linear-gradient(135deg, rgba(212, 175, 55, 0.8) 0%, rgba(245, 226, 150, 0.9) 50%, rgba(184, 134, 11, 0.8) 100%) 1;
+}
+
+.glass-panel-light {
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(212, 175, 55, 0.28);
+  box-shadow: 0 10px 30px -10px rgba(212, 175, 55, 0.12), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+
+.glass-panel-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.glass-panel-hover:hover {
+  background: #FFFFFF;
+  border-color: rgba(212, 175, 55, 0.6);
+  box-shadow: 0 16px 36px -10px rgba(212, 175, 55, 0.22), 0 6px 12px -2px rgba(0, 0, 0, 0.06);
+  transform: translateY(-2px);
+}
+
+.gold-glow {
+  box-shadow: 0 0 25px rgba(212, 175, 55, 0.22);
+}
+
+.gold-glow-button {
+  background: linear-gradient(135deg, #D4AF37 0%, #B8860B 100%);
+  color: #FFFFFF;
+  transition: all 0.3s ease;
+}
+.gold-glow-button:hover {
+  background: linear-gradient(135deg, #E5C158 0%, #D4AF37 100%);
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.35);
+}
+
+/* SweetAlert2 Custom Luxury Styling */
+.swal2-popup.dg-swal-popup {
+  border-radius: 1.5rem !important;
+  border: 1px solid rgba(212, 175, 55, 0.35) !important;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 25px rgba(212, 175, 55, 0.18) !important;
+  padding: 2rem 1.75rem !important;
+  background: #FFFFFF !important;
+  font-family: inherit !important;
+}
+
+.swal2-title.dg-swal-title {
+  font-family: Georgia, Cambria, 'Times New Roman', Times, serif !important;
+  font-weight: 900 !important;
+  font-size: 1.35rem !important;
+  color: #171717 !important;
+  margin-bottom: 0.5rem !important;
+  line-height: 1.3 !important;
+}
+
+.swal2-html-container.dg-swal-html {
+  font-size: 0.8125rem !important;
+  color: #525252 !important;
+  line-height: 1.5 !important;
+  margin-top: 0.25rem !important;
+}
+
+.swal2-actions.dg-swal-actions {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.75rem !important;
+  margin-top: 1.5rem !important;
+  width: 100% !important;
+}
+
+.dg-swal-confirm-gold {
+  background: linear-gradient(135deg, #D4AF37 0%, #AA7A1E 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 0.75rem 1.75rem !important;
+  border-radius: 0.75rem !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(212, 175, 55, 0.38) !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.dg-swal-confirm-gold:hover {
+  background: linear-gradient(135deg, #E5C158 0%, #C59B27 100%) !important;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dg-swal-confirm-danger {
+  background: #DC2626 !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 0.75rem 1.75rem !important;
+  border-radius: 0.75rem !important;
+  border: none !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.35) !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.dg-swal-confirm-danger:hover {
+  background: #B91C1C !important;
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.5) !important;
+  transform: translateY(-1px) !important;
+}
+
+.dg-swal-cancel {
+  background: #F3F4F6 !important;
+  color: #374151 !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  padding: 0.75rem 1.5rem !important;
+  border-radius: 0.75rem !important;
+  border: 1px solid #D1D5DB !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  outline: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.dg-swal-cancel:hover {
+  background: #E5E5E5 !important;
+  color: #171717 !important;
+  border-color: #9CA3AF !important;
+}
+
+/* SweetAlert2 Luxury Toast Styling */
+.swal2-popup.swal2-toast.dg-swal-toast {
+  background: #FFFFFF !important;
+  color: #171717 !important;
+  border-radius: 1rem !important;
+  border: 1px solid rgba(212, 175, 55, 0.45) !important;
+  box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.18), 0 0 15px rgba(212, 175, 55, 0.2) !important;
+  padding: 0.85rem 1.15rem !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+.swal2-popup.swal2-toast.dg-swal-toast .swal2-title,
+.dg-swal-toast-title {
+  color: #171717 !important;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  font-family: inherit !important;
+  margin: 0 !important;
+  padding: 0 0.5rem !important;
+  line-height: 1.4 !important;
+}
+
+.swal2-popup.swal2-toast.dg-swal-toast .swal2-icon {
+  margin: 0 !important;
+  width: 1.75rem !important;
+  height: 1.75rem !important;
+}
+
+.swal2-popup.swal2-toast.dg-swal-toast .swal2-timer-progress-bar {
+  background: linear-gradient(90deg, #D4AF37, #B8860B) !important;
+  height: 3px !important;
+}
+
+/* Print Stylesheet */
+@media print {
+  @page {
+    margin: 8mm auto;
+    size: auto;
+  }
+  html, body {
+    background: #FFFFFF !important;
+    color: #111827 !important;
+    width: 100% !important;
+    height: auto !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  #printable-receipt {
+    width: 380px !important;
+    max-width: 380px !important;
+    min-width: 380px !important;
+    margin: 0 auto !important;
+    padding: 24px !important;
+    border: 1px solid #D4D4D4 !important;
+    border-radius: 8px !important;
+    background: #FFFFFF !important;
+    box-shadow: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
