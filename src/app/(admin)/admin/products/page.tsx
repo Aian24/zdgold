@@ -84,7 +84,17 @@ export default function AdminProductsPage() {
         await showErrorAlert('Upload Failed', json.error || 'Failed to upload product photo');
       }
     } catch (err) {
-      await showErrorAlert('Upload Error', 'Failed to communicate with image upload service.');
+      console.error('Product image upload error:', err);
+      // Fallback: convert file to Data URL directly in browser
+      const reader = new FileReader();
+      reader.onload = (uploadEvent) => {
+        const dataUrl = uploadEvent.target?.result as string;
+        if (dataUrl) {
+          setFormData((prev) => ({ ...prev, images: dataUrl }));
+          showToast('Photo loaded! Click Save to apply.', 'info');
+        }
+      };
+      reader.readAsDataURL(file);
     } finally {
       setIsUploadingImage(false);
     }
