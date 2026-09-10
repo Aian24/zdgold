@@ -47,6 +47,7 @@ export default function LoginPage() {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   // Register form state
   const [regName, setRegName] = useState('');
@@ -62,6 +63,19 @@ export default function LoginPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    try {
+      const isRemembered = localStorage.getItem('zd_remember_me');
+      const savedEmail = localStorage.getItem('zd_remembered_email');
+      if (isRemembered === 'false') {
+        setRememberMe(false);
+      } else if (savedEmail) {
+        setLoginEmail(savedEmail);
+        setRememberMe(true);
+      }
+    } catch (e) {}
+  }, []);
 
   // Real OAuth Login Handlers
   const handleGoogleSignIn = () => {
@@ -106,6 +120,16 @@ export default function LoginPage() {
 
     const res = await loginWithCredentials(loginEmail, loginPassword);
     if (res.success && res.user) {
+      try {
+        if (rememberMe) {
+          localStorage.setItem('zd_remember_me', 'true');
+          localStorage.setItem('zd_remembered_email', loginEmail.trim());
+        } else {
+          localStorage.setItem('zd_remember_me', 'false');
+          localStorage.removeItem('zd_remembered_email');
+        }
+      } catch (e) {}
+
       if (res.user.role === 'ADMIN') {
         setSuccessMessage('Admin credentials verified. Redirecting to Executive Portal...');
         setTimeout(() => {
@@ -320,9 +344,14 @@ export default function LoginPage() {
             />
 
             <div className="flex items-center justify-between text-xs pt-1">
-              <label className="flex items-center gap-2 cursor-pointer text-neutral-600">
-                <input type="checkbox" defaultChecked className="rounded text-gold-500 focus:ring-gold-400" />
-                <span>Remember me</span>
+              <label className="flex items-center gap-2 cursor-pointer text-neutral-600 select-none hover:text-neutral-900 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded text-gold-500 focus:ring-gold-400 border-neutral-300 cursor-pointer accent-amber-600"
+                />
+                <span className="font-medium">Remember me</span>
               </label>
             </div>
 

@@ -39,6 +39,7 @@ export const AuthModal: React.FC = () => {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   // Register form state
   const [regName, setRegName] = useState('');
@@ -54,6 +55,19 @@ export const AuthModal: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    try {
+      const isRemembered = localStorage.getItem('zd_remember_me');
+      const savedEmail = localStorage.getItem('zd_remembered_email');
+      if (isRemembered === 'false') {
+        setRememberMe(false);
+      } else if (savedEmail) {
+        setLoginEmail(savedEmail);
+        setRememberMe(true);
+      }
+    } catch (e) {}
+  }, []);
 
   useEffect(() => {
     if (authModalTab) {
@@ -113,6 +127,16 @@ export const AuthModal: React.FC = () => {
 
     const res = await loginWithCredentials(loginEmail, loginPassword);
     if (res.success && res.user) {
+      try {
+        if (rememberMe) {
+          localStorage.setItem('zd_remember_me', 'true');
+          localStorage.setItem('zd_remembered_email', loginEmail.trim());
+        } else {
+          localStorage.setItem('zd_remember_me', 'false');
+          localStorage.removeItem('zd_remembered_email');
+        }
+      } catch (e) {}
+
       if (res.user.role === 'ADMIN') {
         setSuccessMessage(`Welcome Administrator, ${res.user.name.split(' ')[0]}! Redirecting...`);
         setTimeout(() => {
@@ -353,8 +377,13 @@ export const AuthModal: React.FC = () => {
                 />
 
                 <div className="flex items-center justify-between text-[11px] pt-0.5">
-                  <label className="flex items-center gap-1.5 cursor-pointer text-neutral-600">
-                    <input type="checkbox" defaultChecked className="rounded text-gold-500 focus:ring-gold-400" />
+                  <label className="flex items-center gap-1.5 cursor-pointer text-neutral-600 select-none hover:text-neutral-900 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-3.5 h-3.5 rounded text-gold-500 focus:ring-gold-400 border-neutral-300 cursor-pointer accent-amber-600"
+                    />
                     <span>Remember me</span>
                   </label>
                 </div>
