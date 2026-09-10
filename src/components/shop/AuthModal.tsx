@@ -227,14 +227,26 @@ export const AuthModal: React.FC = () => {
           </motion.button>
 
           {/* Brand Header */}
-          <div className="text-center space-y-1 mb-4">
-            <h2 className="text-xl font-bold font-serif text-neutral-900">
-              {settings.companyName}
-            </h2>
-            <p className="text-xs text-neutral-500">
-              {activeTab === 'signin' && 'Sign in to access price-locked layaways, receipts, and orders.'}
-              {activeTab === 'register' && 'Create your customer account to lock gold rates at 0% interest.'}
-            </p>
+          <div className="text-center space-y-2 mb-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 border border-gold-500/50 shadow-md p-1 mx-auto flex items-center justify-center overflow-hidden">
+              <img
+                src={settings.logoUrl || '/images/logo.png'}
+                alt={settings.companyName || 'ZD Gold'}
+                className="w-full h-full object-contain rounded-full"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = '/images/logo.png';
+                }}
+              />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold font-serif text-neutral-900 tracking-tight">
+                {settings.companyName}
+              </h2>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                {activeTab === 'signin' && 'Sign in to access price-locked layaways, receipts, and orders.'}
+                {activeTab === 'register' && 'Create your customer account to lock gold rates at 0% interest.'}
+              </p>
+            </div>
           </div>
 
           {/* Feedback Messages */}

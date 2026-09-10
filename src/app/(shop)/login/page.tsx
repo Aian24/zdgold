@@ -189,12 +189,15 @@ export default function LoginPage() {
     <div className="max-w-lg mx-auto px-4 py-12 sm:py-16 space-y-6">
       {/* Brand Header */}
       <div className="text-center space-y-2">
-        <div className="w-14 h-14 rounded-full bg-gradient-to-br from-gold-400 via-gold-500 to-gold-700 flex items-center justify-center p-0.5 mx-auto shadow-md">
-          <div className="w-full h-full bg-white rounded-full flex items-center justify-center">
-            <span className="font-serif font-black text-gold-600 text-base">
-              {settings.companyName.split(' ').map((w) => w[0]).join('').slice(0, 2) || 'DG'}
-            </span>
-          </div>
+        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 border-2 border-gold-500/50 shadow-md p-1.5 mx-auto flex items-center justify-center overflow-hidden">
+          <img
+            src={settings.logoUrl || '/images/logo.png'}
+            alt={settings.companyName || 'ZD Gold'}
+            className="w-full h-full object-contain rounded-full"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = '/images/logo.png';
+            }}
+          />
         </div>
         <h1 className="text-2xl sm:text-3xl font-black font-serif text-neutral-900">
           {settings.companyName} Portal
