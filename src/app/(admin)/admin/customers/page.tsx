@@ -14,6 +14,7 @@ import {
   Trash2,
   Edit2,
   UserCheck,
+  MapPin,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/gold-pricing';
 import { Badge } from '@/components/ui/Badge';
@@ -543,8 +544,9 @@ export default function AdminCustomersPage() {
                       <p className="font-mono text-[11px]" style={{ color: 'var(--theme-text-muted, #787878)' }}>
                         {client.phone || 'No phone recorded'}
                       </p>
-                      <p className="text-[11px]" style={{ color: 'var(--theme-text-secondary, #4A4A4A)' }}>
-                        📍 {client.city ? `${client.city}, ` : ''}{client.address || 'Philippines'}
+                      <p className="text-[11px] flex items-center gap-1" style={{ color: 'var(--theme-text-secondary, #4A4A4A)' }}>
+                        <MapPin className="w-3 h-3 text-neutral-400 shrink-0" />
+                        <span>{client.city ? `${client.city}, ` : ''}{client.address || 'Philippines'}</span>
                       </p>
                     </div>
                   </div>

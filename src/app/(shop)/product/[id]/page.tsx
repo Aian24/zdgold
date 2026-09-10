@@ -110,7 +110,13 @@ export default async function ProductDetailPage({
             <div className="text-xs font-bold text-gold-700 uppercase tracking-widest mb-1.5 flex items-center gap-2">
               <span>{product.category}</span>
               <span>•</span>
-              <span className="text-emerald-700 font-semibold">In Stock ({product.stockQuantity} Available)</span>
+              {product.stockQuantity > 0 ? (
+                <span className="text-emerald-700 font-semibold">In Stock ({product.stockQuantity} Available)</span>
+              ) : (
+                <span className="text-rose-700 font-bold bg-rose-100 px-2 py-0.5 rounded text-[10px]">
+                  ● SOLD OUT
+                </span>
+              )}
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black font-serif text-neutral-900 leading-tight">

@@ -12,7 +12,9 @@
 /build
 
 # Environment variables & database files
-.env*.local
+.env
+.env.*
+!.env.example
 *.db
 *.db-journal
 

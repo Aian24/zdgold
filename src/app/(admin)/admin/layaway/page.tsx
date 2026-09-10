@@ -49,6 +49,7 @@ export default function AdminLayawayPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'COMPLETED' | 'OVERDUE' | 'CANCELLED'>('ALL');
 
   // Selection & Pagination
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
@@ -95,6 +96,9 @@ export default function AdminLayawayPage() {
   const [paymentMethod, setPaymentMethod] = useState('GCASH');
 
   const remainingBalance = Math.max(0, totalAmount - downPaymentAmount);
+
+  // Filter out sold-out items from catalog
+  const inStockProducts = products.filter((p) => (p.stockQuantity ?? 0) > 0);
 
   // Auto calculate schedule
   useEffect(() => {
@@ -166,14 +170,33 @@ export default function AdminLayawayPage() {
     fetchContractsAndData();
   }, []);
 
+  // Filter counts
+  const totalActive = contracts.filter((c) => c.status === 'ACTIVE').length;
+  const totalCompleted = contracts.filter((c) => c.status === 'COMPLETED').length;
+  const totalOverdue = contracts.filter(
+    (c) => c.status === 'ACTIVE' && c.installments?.some((inst) => isInstallmentOverdue(inst.dueDate, inst.status))
+  ).length;
+  const totalCancelled = contracts.filter((c) => c.status === 'CANCELLED' || c.status === 'DEFAULTED').length;
+
   // Filtered & Paginated
-  const filtered = contracts.filter(
-    (c) =>
-      c.contractNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      c.user?.phone?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filtered = contracts.filter((c) => {
+    if (statusFilter === 'ACTIVE' && c.status !== 'ACTIVE') return false;
+    if (statusFilter === 'COMPLETED' && c.status !== 'COMPLETED') return false;
+    if (statusFilter === 'OVERDUE') {
+      const hasOverdue = c.status === 'ACTIVE' && c.installments?.some((inst) => isInstallmentOverdue(inst.dueDate, inst.status));
+      if (!hasOverdue) return false;
+    }
+    if (statusFilter === 'CANCELLED' && c.status !== 'CANCELLED' && c.status !== 'DEFAULTED') return false;
+
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      c.contractNumber.toLowerCase().includes(q) ||
+      c.user?.name?.toLowerCase().includes(q) ||
+      c.user?.email?.toLowerCase().includes(q) ||
+      c.user?.phone?.toLowerCase().includes(q)
+    );
+  });
 
   const totalPages = Math.ceil(filtered.length / pageSize) || 1;
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -463,20 +486,95 @@ export default function AdminLayawayPage() {
         </div>
       </FadeInUp>
 
-      {/* Search Bar & Bulk Action Bar */}
+      {/* Filter Tabs & Search Bar */}
       <div className="space-y-3">
-        <FadeInUp className="max-w-md">
-          <Input
-            placeholder="Search by contract #, customer name, email..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            leftIcon={<Search className="w-4 h-4" />}
-            className="text-xs"
-          />
-        </FadeInUp>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Status Filter Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <button
+              onClick={() => {
+                setStatusFilter('ALL');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer whitespace-nowrap ${
+                statusFilter === 'ALL'
+                  ? 'bg-neutral-900 text-white border-neutral-900 shadow-xs'
+                  : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-400'
+              }`}
+            >
+              All Plans ({contracts.length})
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter('ACTIVE');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                statusFilter === 'ACTIVE'
+                  ? 'bg-gold-700 text-white border-gold-700 shadow-xs'
+                  : 'bg-gold-50 text-gold-900 border-gold-300 hover:border-gold-500'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-gold-500"></span>
+              Active ({totalActive})
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter('COMPLETED');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                statusFilter === 'COMPLETED'
+                  ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
+                  : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:border-emerald-400'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Completed ({totalCompleted})
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter('OVERDUE');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                statusFilter === 'OVERDUE'
+                  ? 'bg-rose-700 text-white border-rose-700 shadow-xs'
+                  : 'bg-rose-50 text-rose-900 border-rose-300 hover:border-rose-500'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+              Overdue ({totalOverdue})
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter('CANCELLED');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                statusFilter === 'CANCELLED'
+                  ? 'bg-neutral-700 text-white border-neutral-700 shadow-xs'
+                  : 'bg-neutral-100 text-neutral-700 border-neutral-200 hover:border-neutral-400'
+              }`}
+            >
+              Defaulted / Cancelled ({totalCancelled})
+            </button>
+          </div>
+
+          {/* Search Input */}
+          <div className="w-full md:w-80">
+            <Input
+              placeholder="Filter plans by #, customer, phone..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              leftIcon={<Search className="w-4 h-4" />}
+              className="text-xs"
+            />
+          </div>
+        </div>
 
         <BulkActionBar
           selectedCount={selectedIds.length}
@@ -525,7 +623,7 @@ export default function AdminLayawayPage() {
                 <tr>
                   <td colSpan={9} className="p-12 text-center text-xs text-neutral-500">
                     <Lock className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
-                    No layaway contracts found matching your search.
+                    No layaway contracts found matching your search or filter.
                   </td>
                 </tr>
               ) : (
@@ -656,7 +754,7 @@ export default function AdminLayawayPage() {
           ) : paginated.length === 0 ? (
             <div className="p-8 text-center text-xs text-neutral-500">
               <Lock className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
-              No layaway contracts found matching your search.
+              No layaway contracts found matching your search or filter.
             </div>
           ) : (
             paginated.map((contract) => {
@@ -907,10 +1005,10 @@ export default function AdminLayawayPage() {
         subtitle="Configure 0% interest terms, calendar payment dates, and downpayment deposit."
         maxWidth="2xl"
       >
-        <form onSubmit={handleCreateLayawaySubmit} className="space-y-5 text-xs">
-          {/* Customer Selection */}
-          <div className="p-3.5 rounded-xl bg-[#FAF8F2] border border-gold-500/25 space-y-2.5">
-            <span className="font-bold text-neutral-800 uppercase block text-[11px]">
+        <form onSubmit={handleCreateLayawaySubmit} className="space-y-4 text-xs">
+          {/* 1. Customer Selection Section */}
+          <div className="p-4 rounded-2xl bg-[#FAF8F2] border border-gold-500/25 space-y-3">
+            <span className="font-bold text-neutral-800 uppercase block text-[11px] tracking-wide">
               Customer Information
             </span>
             <div>
@@ -918,9 +1016,9 @@ export default function AdminLayawayPage() {
               <select
                 value={selectedCustomerId}
                 onChange={(e) => handleCustomerSelect(e.target.value)}
-                className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-medium"
+                className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-medium focus:ring-1 focus:ring-gold-500 focus:outline-none"
               >
-                <option value="custom">👤 Walk-In Customer / Custom Entry</option>
+                <option value="custom">Walk-In Customer / Custom Entry</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.email}) {c.phone ? `• ${c.phone}` : ''}
@@ -929,127 +1027,134 @@ export default function AdminLayawayPage() {
               </select>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="text-[10px] text-neutral-500 block mb-0.5 font-bold">Full Name *</label>
+                <label className="text-[10px] text-neutral-500 block mb-1 font-bold">Full Name *</label>
                 <input
                   type="text"
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
                   placeholder="e.g. Maria Santos"
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-bold"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-bold focus:ring-1 focus:ring-gold-500 focus:outline-none"
                   required
                 />
               </div>
               <div>
-                <label className="text-[10px] text-neutral-500 block mb-0.5 font-bold">Phone</label>
+                <label className="text-[10px] text-neutral-500 block mb-1 font-bold">Phone Number</label>
                 <input
                   type="text"
                   value={customerPhone}
                   onChange={(e) => setCustomerPhone(e.target.value)}
                   placeholder="+63 917..."
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-mono"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono focus:ring-1 focus:ring-gold-500 focus:outline-none"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-neutral-500 block mb-0.5 font-bold">Email</label>
+                <label className="text-[10px] text-neutral-500 block mb-1 font-bold">Email Address</label>
                 <input
                   type="email"
                   value={customerEmail}
                   onChange={(e) => setCustomerEmail(e.target.value)}
                   placeholder="client@example.ph"
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs focus:ring-1 focus:ring-gold-500 focus:outline-none"
                 />
               </div>
             </div>
           </div>
 
-          {/* Jewelry Item & Total Value */}
-          <div className="p-3.5 rounded-xl bg-white border border-neutral-200 space-y-2.5">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-neutral-800 uppercase block text-[11px]">
-                Jewelry Item & Contract Value
-              </span>
-              {products.length > 0 && (
+          {/* 2. Jewelry Item & Contract Value */}
+          <div className="p-4 rounded-2xl bg-white border border-neutral-200 space-y-3 shadow-2xs">
+            <span className="font-bold text-neutral-800 uppercase block text-[11px] tracking-wide">
+              Jewelry Item & Contract Value
+            </span>
+
+            {inStockProducts.length > 0 && (
+              <div>
+                <label className="text-[10px] text-neutral-500 block mb-1 font-bold">
+                  Auto-Fill From In-Stock Catalog (Optional)
+                </label>
                 <select
                   onChange={(e) => handleProductSelect(e.target.value)}
-                  className="bg-neutral-50 border border-neutral-300 rounded-lg px-2 py-1 text-[11px]"
+                  className="w-full bg-neutral-50 border border-neutral-300 rounded-lg p-2 text-xs font-medium focus:ring-1 focus:ring-gold-500 focus:outline-none"
                 >
-                  <option value="">Choose Catalog Item...</option>
-                  {products.map((p) => (
-                    <option key={p.id} value={p.id}>{p.name}</option>
+                  <option value="">Choose In-Stock Catalog Item...</option>
+                  {inStockProducts.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.karat}) • {formatCurrency(p.basePrice)} • Stock: {p.stockQuantity}
+                    </option>
                   ))}
                 </select>
-              )}
-            </div>
+              </div>
+            )}
 
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
               <div className="sm:col-span-2">
-                <label className="text-[10px] text-neutral-500 block mb-0.5 font-bold">Item Description</label>
+                <label className="text-[10px] text-neutral-500 block mb-1 font-bold">Item Description *</label>
                 <input
                   type="text"
                   value={itemName}
                   onChange={(e) => setItemName(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-bold"
+                  placeholder="e.g. 18K Saudi Gold Franco Chain"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-bold focus:ring-1 focus:ring-gold-500 focus:outline-none"
+                  required
                 />
               </div>
               <div>
-                <label className="text-[10px] text-neutral-500 block mb-0.5 font-bold">Weight (g)</label>
+                <label className="text-[10px] text-neutral-500 block mb-1 font-bold">Weight (g)</label>
                 <input
                   type="number"
-                  step="0.1"
-                  placeholder="0"
+                  step="0.01"
+                  placeholder="0.00"
                   value={itemWeight === 0 ? '' : itemWeight}
                   onChange={(e) => setItemWeight(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-mono"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold focus:ring-1 focus:ring-gold-500 focus:outline-none"
                 />
               </div>
               <div>
-                <label className="text-[10px] text-neutral-500 block mb-0.5 font-bold">Total Price (₱) *</label>
+                <label className="text-[10px] text-neutral-500 block mb-1 font-bold">Total Price (₱) *</label>
                 <input
                   type="number"
                   step="100"
                   placeholder="0"
                   value={totalAmount === 0 ? '' : totalAmount}
                   onChange={(e) => setTotalAmount(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-mono font-bold text-neutral-900"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold text-neutral-900 focus:ring-1 focus:ring-gold-500 focus:outline-none"
                   required
                 />
               </div>
             </div>
           </div>
 
-          {/* Downpayment & Frequency Terms */}
-          <div className="space-y-3">
-            <span className="font-bold text-neutral-800 uppercase block text-[11px]">
-              Layaway Terms & Calendar Pickers
+          {/* 3. Layaway Terms & Calendar Pickers */}
+          <div className="p-4 rounded-2xl bg-[#FAF8F2] border border-gold-500/25 space-y-3.5">
+            <span className="font-bold text-neutral-800 uppercase block text-[11px] tracking-wide">
+              Layaway Terms & Payment Frequency
             </span>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {/* Downpayment, Frequency, Installment Count */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
               <div>
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-[10px] text-neutral-500 font-bold">Downpayment (₱)</label>
-                  <div className="flex gap-1">
-                    {[10, 20, 30, 50].map((pct) => (
-                      <button
-                        key={pct}
-                        type="button"
-                        onClick={() => handleSetDownPaymentPercent(pct)}
-                        className="px-1.5 py-0.5 bg-neutral-100 hover:bg-gold-100 text-[10px] rounded font-mono"
-                      >
-                        {pct}%
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <label className="text-[10px] text-neutral-500 block mb-1 font-bold">Downpayment (₱)</label>
                 <input
                   type="number"
                   step="500"
                   placeholder="0"
                   value={downPaymentAmount === 0 ? '' : downPaymentAmount}
                   onChange={(e) => setDownPaymentAmount(e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-mono font-bold"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold focus:ring-1 focus:ring-gold-500 focus:outline-none"
                 />
+                <div className="flex gap-1 mt-1.5">
+                  {[10, 20, 30, 50].map((pct) => (
+                    <button
+                      key={pct}
+                      type="button"
+                      onClick={() => handleSetDownPaymentPercent(pct)}
+                      className="flex-1 py-1 bg-white hover:bg-gold-500/20 text-[10px] rounded font-mono font-bold text-neutral-700 transition-colors cursor-pointer border border-neutral-200"
+                    >
+                      {pct}%
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
@@ -1057,7 +1162,7 @@ export default function AdminLayawayPage() {
                 <select
                   value={frequency}
                   onChange={(e) => setFrequency(e.target.value as any)}
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-medium"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-medium focus:ring-1 focus:ring-gold-500 focus:outline-none"
                 >
                   <option value="TWICE_MONTHLY">Twice a Month (Every 15d)</option>
                   <option value="MONTHLY">Monthly (Every 30d)</option>
@@ -1070,7 +1175,7 @@ export default function AdminLayawayPage() {
                 <select
                   value={installmentCount}
                   onChange={(e) => setInstallmentCount(parseInt(e.target.value) || 1)}
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-medium"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-medium focus:ring-1 focus:ring-gold-500 focus:outline-none"
                 >
                   <option value={1}>1 Payment (1 Month)</option>
                   <option value={2}>2 Payments</option>
@@ -1084,17 +1189,17 @@ export default function AdminLayawayPage() {
               </div>
             </div>
 
-            {/* Start Date & Dues */}
+            {/* Start Date & Downpayment Method */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
               <div>
-                <label className="text-[10px] text-neutral-500 block mb-1 font-bold">
-                  📅 Contract Start Date
+                <label className="text-[10px] text-neutral-500 flex items-center gap-1 mb-1 font-bold">
+                  <Calendar className="w-3.5 h-3.5 text-gold-600 inline" /> Contract Start Date
                 </label>
                 <input
                   type="date"
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-mono font-bold cursor-pointer"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-mono font-bold cursor-pointer focus:ring-1 focus:ring-gold-500 focus:outline-none"
                 />
               </div>
 
@@ -1103,49 +1208,71 @@ export default function AdminLayawayPage() {
                 <select
                   value={paymentMethod}
                   onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-medium"
+                  className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-medium focus:ring-1 focus:ring-gold-500 focus:outline-none"
                 >
                   <option value="GCASH">GCash</option>
                   <option value="CASH">Store Vault Cash</option>
-                  <option value="BANK_TRANSFER">Bank Wire</option>
+                  <option value="BANK_TRANSFER">Bank Wire Transfer</option>
                   <option value="CREDIT_CARD">Card Terminal</option>
                 </select>
               </div>
             </div>
 
-            {/* Installment Table with Date Pickers */}
-            <div className="space-y-1.5 pt-2">
-              <span className="text-[10px] text-neutral-600 uppercase font-bold block">
-                Installment Schedule (Calendar Date Pickers)
-              </span>
-              <div className="space-y-1 max-h-40 overflow-y-auto pr-1">
-                {installments.map((inst, idx) => (
-                  <div
-                    key={inst.id}
-                    className="flex items-center justify-between gap-2 p-1.5 rounded-lg bg-neutral-50 border border-neutral-200 text-xs"
-                  >
-                    <span className="font-mono text-neutral-500 text-[11px] w-6">#{inst.installmentNumber}</span>
-                    <input
-                      type="date"
-                      value={inst.dueDate}
-                      onChange={(e) => handleUpdateInstallment(idx, 'dueDate', e.target.value)}
-                      className="bg-white border border-neutral-300 rounded px-1.5 py-0.5 text-[11px] font-mono font-bold text-neutral-900 cursor-pointer"
-                    />
-                    <input
-                      type="number"
-                      placeholder="0"
-                      value={inst.amountDue === 0 ? '' : inst.amountDue}
-                      onChange={(e) => handleUpdateInstallment(idx, 'amountDue', e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
-                      className="w-20 bg-white border border-neutral-300 rounded px-1.5 py-0.5 text-[11px] font-mono text-right font-bold text-neutral-900"
-                    />
-                  </div>
-                ))}
+            {/* Installment Schedule Table with Grid Alignments */}
+            <div className="space-y-2 pt-2 border-t border-neutral-200">
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-neutral-700 uppercase font-bold tracking-wide flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-gold-600" /> Installment Schedule ({installments.length} Due Dates)
+                </span>
+                <span className="text-[10px] text-neutral-400 font-mono">Editable dates & amounts</span>
+              </div>
+
+              <div className="border border-neutral-200 rounded-xl overflow-hidden bg-neutral-50">
+                <div className="grid grid-cols-12 gap-2 px-3 py-1.5 bg-neutral-100/80 border-b border-neutral-200 text-[10px] font-mono uppercase font-bold text-neutral-500">
+                  <div className="col-span-2">#</div>
+                  <div className="col-span-6">Due Date (Calendar)</div>
+                  <div className="col-span-4 text-right">Amount Due (₱)</div>
+                </div>
+                <div className="max-h-44 overflow-y-auto divide-y divide-neutral-200/60 pr-0.5">
+                  {installments.map((inst, idx) => (
+                    <div
+                      key={inst.id}
+                      className="grid grid-cols-12 gap-2 items-center px-3 py-1.5 bg-white hover:bg-gold-50/30 transition-colors text-xs"
+                    >
+                      <div className="col-span-2 font-mono font-bold text-neutral-500 text-xs">
+                        #{inst.installmentNumber}
+                      </div>
+                      <div className="col-span-6">
+                        <input
+                          type="date"
+                          value={inst.dueDate}
+                          onChange={(e) => handleUpdateInstallment(idx, 'dueDate', e.target.value)}
+                          className="w-full bg-neutral-50 hover:bg-white focus:bg-white border border-neutral-200 rounded-md px-2 py-1 text-xs font-mono font-bold text-neutral-800 cursor-pointer focus:ring-1 focus:ring-gold-500 focus:outline-none"
+                        />
+                      </div>
+                      <div className="col-span-4">
+                        <div className="relative">
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[11px] font-mono text-neutral-400">₱</span>
+                          <input
+                            type="number"
+                            step="0.01"
+                            placeholder="0.00"
+                            value={inst.amountDue === 0 ? '' : inst.amountDue}
+                            onChange={(e) => handleUpdateInstallment(idx, 'amountDue', e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
+                            className="w-full bg-neutral-50 hover:bg-white focus:bg-white border border-neutral-200 rounded-md pl-5 pr-2 py-1 text-xs font-mono font-bold text-right text-neutral-900 focus:ring-1 focus:ring-gold-500 focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-neutral-900 text-white font-mono">
-              <span className="text-xs">Remaining Balance:</span>
-              <span className="text-base font-black text-gold-400">{formatCurrency(remainingBalance)}</span>
+            {/* Remaining Balance Display */}
+            <div className="flex justify-between items-center p-3 rounded-xl bg-neutral-900 text-white font-mono shadow-inner">
+              <span className="text-xs font-medium text-neutral-300">Remaining Balance:</span>
+              <span className="text-base font-black text-gold-400 tracking-tight">{formatCurrency(remainingBalance)}</span>
             </div>
           </div>
 

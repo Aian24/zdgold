@@ -431,36 +431,78 @@
 /* Print Stylesheet */
 @media print {
   @page {
-    margin: 8mm auto;
+    margin: 5mm 8mm;
     size: auto;
   }
   html, body {
     background: #FFFFFF !important;
-    color: #111827 !important;
+    color: #000000 !important;
     width: 100% !important;
-    height: auto !important;
+    height: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  .no-print {
+  .no-print, header, nav, footer, aside, [role="navigation"], .mobile-nav {
     display: none !important;
   }
   .print-only {
     display: block !important;
   }
   #printable-receipt {
-    width: 380px !important;
-    max-width: 380px !important;
-    min-width: 380px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    min-height: 92vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: space-between !important;
     margin: 0 auto !important;
-    padding: 24px !important;
-    border: 1px solid #D4D4D4 !important;
-    border-radius: 8px !important;
+    padding: 18px 24px !important;
+    border: 2px solid #000000 !important;
+    border-radius: 0px !important;
     background: #FFFFFF !important;
     box-shadow: none !important;
     page-break-inside: avoid !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
     break-inside: avoid !important;
   }
+  #printable-receipt * {
+    color: #000000 !important;
+    border-color: #000000 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
 }
+
+/* ==========================================================================
+   ROBUST ANIMATIONS & SPINNERS
+   ========================================================================== */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 0.85s linear infinite !important;
+}
+
+.border-t-transparent {
+  border-top-color: transparent !important;
+}
+.border-r-transparent {
+  border-right-color: transparent !important;
+}
+.border-b-transparent {
+  border-bottom-color: transparent !important;
+}
+.border-l-transparent {
+  border-left-color: transparent !important;
+}
+

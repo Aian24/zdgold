@@ -96,7 +96,7 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
-        message: 'Account created successfully! Welcome to Danica Gold.',
+        message: 'Account created successfully! Welcome to your account.',
         user: {
           id: newUser.id,
           name: newUser.name,

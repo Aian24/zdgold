@@ -37,6 +37,30 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     styleEl.textContent = generateCssVariables(themeToApply);
   }, []);
 
+  // Apply dynamic browser tab title & favicon
+  const applyBrandToDom = useCallback((brand: { companyName?: string; tagline?: string; logoUrl?: string }) => {
+    if (typeof document === 'undefined') return;
+
+    if (brand.companyName) {
+      const titleText = brand.tagline ? `${brand.companyName} | ${brand.tagline}` : brand.companyName;
+      document.title = titleText;
+    }
+
+    if (brand.logoUrl) {
+      const iconLinks = document.querySelectorAll<HTMLLinkElement>("link[rel*='icon']");
+      if (iconLinks.length > 0) {
+        iconLinks.forEach((link) => {
+          link.href = brand.logoUrl!;
+        });
+      } else {
+        const link = document.createElement('link');
+        link.rel = 'icon';
+        link.href = brand.logoUrl;
+        document.head.appendChild(link);
+      }
+    }
+  }, []);
+
   // Update state, storage, and DOM
   const setFullTheme = useCallback(
     (newTheme: ThemeConfig) => {
@@ -143,7 +167,29 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (e) {}
 
+    // Load initial brand settings
+    try {
+      const storedSettings = localStorage.getItem('danica_gold_settings_v2');
+      if (storedSettings) {
+        const parsed = JSON.parse(storedSettings);
+        applyBrandToDom(parsed);
+      }
+    } catch (e) {}
+
     fetchServerTheme();
+
+    // Fetch site branding settings
+    fetch('/api/settings')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.settings) {
+          applyBrandToDom(data.settings);
+          try {
+            localStorage.setItem('danica_gold_settings_v2', JSON.stringify(data.settings));
+          } catch (e) {}
+        }
+      })
+      .catch(() => {});
 
     const handleSync = (e: any) => {
       if (e.detail) {
@@ -152,9 +198,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       }
     };
 
+    const handleBrandSync = (e: any) => {
+      if (e.detail) {
+        applyBrandToDom(e.detail);
+      }
+    };
+
     window.addEventListener(THEME_SYNC_EVENT, handleSync);
-    return () => window.removeEventListener(THEME_SYNC_EVENT, handleSync);
-  }, [applyCssToDom, fetchServerTheme]);
+    window.addEventListener('danica_settings_changed', handleBrandSync);
+    return () => {
+      window.removeEventListener(THEME_SYNC_EVENT, handleSync);
+      window.removeEventListener('danica_settings_changed', handleBrandSync);
+    };
+  }, [applyCssToDom, applyBrandToDom, fetchServerTheme]);
 
   return (
     <ThemeContext.Provider

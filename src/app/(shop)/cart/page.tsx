@@ -120,22 +120,30 @@ export default function CartPage() {
 
                   {/* Quantity Controls & Total */}
                   <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto pt-3 sm:pt-0 border-t sm:border-t-0 border-neutral-100">
-                    <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200 rounded-xl p-1">
-                      <motion.button
-                        whileTap={{ scale: 0.85 }}
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                        className="p-1 rounded text-neutral-600 hover:bg-neutral-200 cursor-pointer"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </motion.button>
-                      <span className="text-xs font-bold text-neutral-900 px-2 font-mono">{item.quantity}</span>
-                      <motion.button
-                        whileTap={{ scale: 0.85 }}
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                        className="p-1 rounded text-neutral-600 hover:bg-neutral-200 cursor-pointer"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </motion.button>
+                    <div className="flex flex-col items-end gap-1">
+                      <div className="flex items-center gap-2 bg-neutral-50 border border-neutral-200 rounded-xl p-1">
+                        <motion.button
+                          whileTap={{ scale: 0.85 }}
+                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          className="p-1 rounded text-neutral-600 hover:bg-neutral-200 cursor-pointer"
+                          aria-label="Decrease quantity"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </motion.button>
+                        <span className="text-xs font-bold text-neutral-900 px-2 font-mono min-w-[20px] text-center">{item.quantity}</span>
+                        <motion.button
+                          whileTap={{ scale: 0.85 }}
+                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          disabled={item.quantity >= 50 || itemCount >= 100}
+                          className="p-1 rounded text-neutral-600 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                          aria-label="Increase quantity"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </motion.button>
+                      </div>
+                      {item.quantity >= 50 && (
+                        <span className="text-[10px] text-gold-700 font-bold">Max 50 pcs per item</span>
+                      )}
                     </div>
 
                     <div className="text-right min-w-[90px]">

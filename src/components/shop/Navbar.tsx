@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShoppingBag,
@@ -12,13 +12,17 @@ import {
   ChevronDown,
   User as UserIcon,
   LogOut,
+  FileText,
 } from 'lucide-react';
 import { useCart, useAuth, useSettings } from '@/lib/store';
 import { formatCurrency } from '@/lib/gold-pricing';
 
-export const Navbar: React.FC = () => {
+function NavbarContent() {
   const pathname = usePathname();
-  const { itemCount, subtotal } = useCart();
+  const searchParams = useSearchParams();
+  const currentCategory = searchParams.get('category');
+
+  const { itemCount } = useCart();
   const { user, openAuthModal, logout } = useAuth();
   const { settings } = useSettings();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -48,6 +52,17 @@ export const Navbar: React.FC = () => {
     { href: '/catalog?category=EARRINGS', label: 'Earrings' },
     { href: '/account', label: 'Layaway Hub' },
   ];
+
+  const isLinkActive = (linkHref: string) => {
+    if (linkHref === '/catalog') {
+      return pathname === '/catalog' && (!currentCategory || currentCategory === 'ALL');
+    }
+    if (linkHref.startsWith('/catalog?category=')) {
+      const cat = linkHref.replace('/catalog?category=', '');
+      return pathname === '/catalog' && currentCategory === cat;
+    }
+    return pathname === linkHref;
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-gold-500/25 shadow-xs transition-colors duration-200">
@@ -89,7 +104,7 @@ export const Navbar: React.FC = () => {
           {/* Desktop Navigation Links */}
           <nav className="hidden lg:flex items-center space-x-1 flex-nowrap whitespace-nowrap overflow-x-hidden">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive = isLinkActive(link.href);
               return (
                 <Link
                   key={link.href}
@@ -159,20 +174,39 @@ export const Navbar: React.FC = () => {
 
                       <div className="py-1 space-y-0.5">
                         <Link
-                          href="/account"
+                          href="/layaways"
                           onClick={() => setUserDropdownOpen(false)}
-                          className="block px-3 py-2 text-xs text-neutral-700 hover:bg-gold-500/15 hover:text-gold-800 rounded-xl font-medium transition-colors"
+                          className="flex items-center gap-2 px-3 py-2 text-xs text-neutral-700 hover:bg-gold-500/15 hover:text-gold-800 rounded-xl font-medium transition-colors"
                         >
-                          Customer Portal & Layaways
+                          <Lock className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
+                          <span>Active Layaways</span>
+                        </Link>
+
+                        <Link
+                          href="/orders"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 text-xs text-neutral-700 hover:bg-gold-500/15 hover:text-gold-800 rounded-xl font-medium transition-colors"
+                        >
+                          <FileText className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
+                          <span>Order History & Receipts</span>
+                        </Link>
+
+                        <Link
+                          href="/profile"
+                          onClick={() => setUserDropdownOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2 text-xs text-neutral-700 hover:bg-gold-500/15 hover:text-gold-800 rounded-xl font-medium transition-colors"
+                        >
+                          <UserIcon className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
+                          <span>Profile Settings</span>
                         </Link>
 
                         {user.role === 'ADMIN' && (
                           <Link
                             href="/admin"
                             onClick={() => setUserDropdownOpen(false)}
-                            className="block px-3 py-2 text-xs text-gold-700 font-bold hover:bg-gold-500/15 rounded-xl flex items-center gap-1.5 transition-colors"
+                            className="flex items-center gap-2 px-3 py-2 text-xs text-gold-700 font-bold hover:bg-gold-500/15 rounded-xl transition-colors"
                           >
-                            <Lock className="w-3.5 h-3.5 text-gold-600" />
+                            <Lock className="w-3.5 h-3.5 text-gold-600 flex-shrink-0" />
                             <span>Admin Dashboard</span>
                           </Link>
                         )}
@@ -206,7 +240,7 @@ export const Navbar: React.FC = () => {
               </motion.button>
             )}
 
-            {/* Shopping Cart Button with Pop Animation */}
+            {/* Shopping Cart Button with Pop Animation & Number Badge */}
             <motion.div
               key={cartBounceKey}
               animate={cartBounceKey > 0 ? { scale: [1, 1.15, 0.95, 1], rotate: [0, -3, 3, 0] } : {}}
@@ -214,21 +248,23 @@ export const Navbar: React.FC = () => {
             >
               <Link
                 href="/cart"
-                className="relative flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-gold-500/15 to-gold-600/20 border border-gold-500/40 text-neutral-800 hover:border-gold-500 transition-all group whitespace-nowrap shadow-2xs"
+                className="relative flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-gold-500/15 to-gold-600/20 border border-gold-500/40 text-neutral-800 hover:border-gold-500 transition-all group whitespace-nowrap shadow-2xs"
               >
-                <ShoppingBag className="w-3.5 h-3.5 text-gold-600 group-hover:scale-110 transition-transform" />
-                <span className="hidden sm:inline text-xs font-bold text-neutral-900">
-                  {subtotal > 0 ? formatCurrency(subtotal) : 'Cart'}
+                <div className="relative flex items-center justify-center">
+                  <ShoppingBag className="w-4 h-4 text-gold-600 group-hover:scale-110 transition-transform" />
+                  {itemCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0.5 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-2 -right-2.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-gold-600 text-white font-black text-[10px] shadow-sm border border-white"
+                    >
+                      {itemCount > 99 ? '99+' : itemCount}
+                    </motion.span>
+                  )}
+                </div>
+                <span className="text-xs font-bold text-neutral-900">
+                  Cart
                 </span>
-                {itemCount > 0 && (
-                  <motion.span
-                    initial={{ scale: 0.5 }}
-                    animate={{ scale: 1 }}
-                    className="flex items-center justify-center w-4 h-4 rounded-full bg-gold-500 text-white font-black text-[10px] shadow-xs"
-                  >
-                    {itemCount}
-                  </motion.span>
-                )}
               </Link>
             </motion.div>
 
@@ -292,5 +328,13 @@ export const Navbar: React.FC = () => {
         </AnimatePresence>
       </div>
     </header>
+  );
+}
+
+export const Navbar: React.FC = () => {
+  return (
+    <Suspense fallback={<div className="h-16 sm:h-18 bg-white border-b border-gold-500/25" />}>
+      <NavbarContent />
+    </Suspense>
   );
 };

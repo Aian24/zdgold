@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Search,
@@ -11,9 +11,11 @@ import { ProductItem } from '@/lib/types';
 import { ProductCard } from '@/components/shop/ProductCard';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import { StaggerContainer, StaggerItem, FadeInUp } from '@/components/animations/Motion';
 
 function CatalogContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const initialCategory = searchParams.get('category') || 'ALL';
 
@@ -24,18 +26,34 @@ function CatalogContent() {
   const [selectedKarat, setSelectedKarat] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<string>('newest');
 
+  // React to URL search params change (e.g. from navbar navigation)
   useEffect(() => {
-    if (searchParams.get('category')) {
-      setSelectedCategory(searchParams.get('category') || 'ALL');
-    }
+    const cat = searchParams.get('category') || 'ALL';
+    setSelectedCategory(cat);
   }, [searchParams]);
+
+  const handleCategoryChange = (catId: string) => {
+    setSelectedCategory(catId);
+    const params = new URLSearchParams(searchParams.toString());
+    if (catId === 'ALL') {
+      params.delete('category');
+    } else {
+      params.set('category', catId);
+    }
+    const query = params.toString();
+    router.push(query ? `/catalog?${query}` : '/catalog', { scroll: false });
+  };
 
   const fetchProducts = async () => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
-      if (selectedCategory !== 'ALL') params.append('category', selectedCategory);
-      if (selectedKarat !== 'ALL') params.append('karat', selectedKarat);
+      if (selectedCategory && selectedCategory !== 'ALL') {
+        params.append('category', selectedCategory);
+      }
+      if (selectedKarat && selectedKarat !== 'ALL') {
+        params.append('karat', selectedKarat);
+      }
       if (searchQuery) params.append('search', searchQuery);
       if (sortBy) params.append('sort', sortBy);
 
@@ -62,8 +80,8 @@ function CatalogContent() {
 
   const categories = [
     { id: 'ALL', label: 'All Jewelry' },
-    { id: 'NECKLACES', label: 'Necklaces & Chains' },
-    { id: 'RINGS', label: 'Rings & Solitaires' },
+    { id: 'NECKLACES', label: 'Necklaces' },
+    { id: 'RINGS', label: 'Rings' },
     { id: 'BRACELETS', label: 'Bracelets' },
     { id: 'BANGLES', label: 'Bangles' },
     { id: 'PENDANTS', label: 'Pendants' },
@@ -111,7 +129,7 @@ function CatalogContent() {
               key={cat.id}
               type="button"
               whileTap={{ scale: 0.95 }}
-              onClick={() => setSelectedCategory(cat.id)}
+              onClick={() => handleCategoryChange(cat.id)}
               className={`relative px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap transition-colors border cursor-pointer ${
                 isSelected
                   ? 'text-white border-gold-500 shadow-2xs'
@@ -172,13 +190,8 @@ function CatalogContent() {
 
       {/* Product Grid Area */}
       {isLoading ? (
-        <div className="py-16 flex flex-col items-center justify-center text-center">
-          <motion.div
-            animate={{ rotate: 360 }}
-            transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
-            className="w-8 h-8 rounded-full border-2 border-gold-500 border-t-transparent mb-3"
-          />
-          <p className="text-xs text-neutral-600 font-semibold">Loading catalog...</p>
+        <div className="py-20 flex flex-col items-center justify-center text-center">
+          <Spinner size="lg" label="Loading gold jewelry catalog..." />
         </div>
       ) : products.length === 0 ? (
         <FadeInUp className="py-16 text-center rounded-2xl bg-white border border-gold-500/25 p-6 shadow-xs">
@@ -223,8 +236,7 @@ export default function CatalogPage() {
     <Suspense
       fallback={
         <div className="py-24 flex flex-col items-center justify-center text-center">
-          <div className="w-8 h-8 rounded-full border-2 border-gold-500 border-t-transparent animate-spin mb-4" />
-          <p className="text-xs text-neutral-600 font-semibold">Loading Catalog...</p>
+          <Spinner size="lg" label="Loading Catalog..." />
         </div>
       }
     >

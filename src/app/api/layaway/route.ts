@@ -5,10 +5,19 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const userEmail = searchParams.get('userEmail');
     const status = searchParams.get('status');
 
     const where: any = {};
-    if (userId) where.userId = userId;
+    if (userId || userEmail) {
+      where.OR = [
+        ...(userId ? [{ userId }] : []),
+        ...(userEmail ? [{ user: { email: userEmail.toLowerCase().trim() } }] : []),
+      ];
+    } else if (searchParams.has('userId') && !userId) {
+      // If query passed empty userId, return empty result instead of all
+      where.userId = 'no_user_match';
+    }
     if (status && status !== 'ALL') where.status = status;
 
     const contracts = await prisma.layawayContract.findMany({

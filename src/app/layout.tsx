@@ -3,18 +3,25 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
-  title: 'Danica Gold | Haute Joaillerie, 24K Bullion & Layaway Contracts',
+  title: 'ZD Gold | Haute Joaillerie & Fine Gold House',
   description:
-    'Premier luxury retail gold jewelry and fine bullion house. Shop certified hallmarked gold with live spot rates, cash checkout, or price-locked flexible layaway installment plans.',
+    'Premier luxury retail gold jewelry and fine bullion house. Shop certified hallmarked gold, cash checkout, or price-locked flexible layaway installment plans.',
+  icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/images/logo.png', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/images/logo.png',
+  },
   keywords: [
-    'Danica Gold',
+    'ZD Gold',
     'Gold jewelry',
     '24K Gold Bullion',
     'Gold Layaway',
     'Price-Lock Gold',
     'Gold Installment Plan',
     '18K Cuban Chain',
-    'Live Gold Spot Rate',
   ],
 };
 
@@ -34,6 +41,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="scroll-smooth">
       <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/images/logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/images/logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

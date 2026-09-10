@@ -133,13 +133,6 @@ export default function AdminDashboardPage() {
               Refresh
             </Button>
           </motion.div>
-          <Link href="/admin/rates">
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.95 }}>
-              <Button variant="primary" size="sm" className="text-xs font-bold shadow-sm">
-                Adjust Gold Rates
-              </Button>
-            </motion.div>
-          </Link>
         </div>
       </FadeInUp>
 

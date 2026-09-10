@@ -19,6 +19,8 @@ import {
   Palette,
 } from 'lucide-react';
 import { useAuth, useSettings } from '@/lib/store';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 
 export default function AdminLayout({
   children,
@@ -26,7 +28,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, isLoaded, openAuthModal } = useAuth();
   const { settings } = useSettings();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -36,11 +38,51 @@ export default function AdminLayout({
     { href: '/admin/orders', label: 'Orders', icon: ShoppingBag },
     { href: '/admin/layaway', label: 'Layaways', icon: Lock },
     { href: '/admin/receipts', label: 'Receipts', icon: Receipt },
-    { href: '/admin/rates', label: 'Gold Rates', icon: TrendingUp },
     { href: '/admin/customers', label: 'Customers', icon: Users },
     { href: '/admin/customization', label: 'Customization', icon: Palette },
     { href: '/admin/settings', label: 'Settings', icon: Settings },
   ];
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF8F2]">
+        <Spinner size="lg" label="Verifying Administrative Privileges..." />
+      </div>
+    );
+  }
+
+  if (!user || user.role !== 'ADMIN') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#FAF8F2] px-4">
+        <div className="max-w-md w-full rounded-3xl bg-white border border-gold-500/30 p-8 text-center space-y-5 shadow-lg">
+          <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto text-amber-700">
+            <Lock className="w-7 h-7" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold font-serif text-neutral-900">Restricted Administration Area</h2>
+            <p className="text-xs text-neutral-600 leading-relaxed">
+              You must be signed in with an authorized <span className="font-bold text-neutral-900">Administrator account</span> to access back-office management, layaway controls, and pricing settings.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
+            <Link href="/" className="flex-1">
+              <Button variant="secondary" size="md" className="w-full text-xs font-bold">
+                Return to Store
+              </Button>
+            </Link>
+            <Button
+              variant="primary"
+              size="md"
+              onClick={() => openAuthModal('admin')}
+              className="flex-1 text-xs font-bold"
+            >
+              Admin Sign In
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -221,12 +263,13 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Admin Content Canvas with Smooth Route Fade */}
-      <main className="flex-1 p-4 sm:p-8 md:p-10 overflow-y-auto max-w-7xl print:p-0 print:max-w-none print:overflow-visible">
+      <main className="flex-1 w-full min-w-0 p-4 sm:p-6 md:p-8 lg:p-10 overflow-y-auto max-w-none print:p-0 print:max-w-none print:overflow-visible">
         <motion.div
           key={pathname}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}
+          className="w-full"
         >
           {children}
         </motion.div>

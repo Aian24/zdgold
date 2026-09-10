@@ -19,6 +19,8 @@ import {
   Edit2,
   FileText,
   Calendar,
+  Banknote,
+  Lock,
 } from 'lucide-react';
 import { formatCurrency, formatGrams } from '@/lib/gold-pricing';
 import { Badge } from '@/components/ui/Badge';
@@ -48,6 +50,7 @@ export default function AdminOrdersPage() {
   const [products, setProducts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'CASH' | 'LAYAWAY' | 'PROCESSING' | 'DELIVERED'>('ALL');
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   // Selection & Pagination
@@ -112,7 +115,7 @@ export default function AdminOrdersPage() {
       const [ordersRes, custRes, prodRes] = await Promise.all([
         fetch('/api/orders'),
         fetch('/api/customers'),
-        fetch('/api/products'),
+        fetch('/api/products?includeSold=true'),
       ]);
 
       const ordersData = await ordersRes.json();
@@ -180,13 +183,26 @@ export default function AdminOrdersPage() {
   }, [startDate, remainingBalance, frequency, termMonths, orderType]);
 
   // Filtered & Paginated
-  const filtered = orders.filter(
-    (o) =>
+  const filtered = orders.filter((o) => {
+    const matchesSearch =
       o.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
       o.user?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       o.user?.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (o.trackingNumber && o.trackingNumber.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+      (o.trackingNumber && o.trackingNumber.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    if (!matchesSearch) return false;
+
+    if (statusFilter === 'CASH') return o.orderType === 'CASH';
+    if (statusFilter === 'LAYAWAY') return o.orderType === 'LAYAWAY';
+    if (statusFilter === 'PROCESSING') return o.status === 'PROCESSING' || o.status === 'PENDING';
+    if (statusFilter === 'DELIVERED') return o.status === 'DELIVERED';
+    return true;
+  });
+
+  const totalCash = orders.filter((o) => o.orderType === 'CASH').length;
+  const totalLayaway = orders.filter((o) => o.orderType === 'LAYAWAY').length;
+  const totalProcessing = orders.filter((o) => o.status === 'PROCESSING' || o.status === 'PENDING').length;
+  const totalDelivered = orders.filter((o) => o.status === 'DELIVERED').length;
 
   const totalPages = Math.ceil(filtered.length / pageSize) || 1;
   const paginated = filtered.slice((currentPage - 1) * pageSize, currentPage * pageSize);
@@ -498,20 +514,94 @@ export default function AdminOrdersPage() {
         </div>
       </FadeInUp>
 
-      {/* Search Input & Bulk Action Bar */}
+      {/* Filter Tabs & Search Bar */}
       <div className="space-y-3">
-        <FadeInUp className="max-w-md">
-          <Input
-            placeholder="Filter orders by number, customer, tracking..."
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-            leftIcon={<Search className="w-4 h-4" />}
-            className="text-xs"
-          />
-        </FadeInUp>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          {/* Status Filter Tabs */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+            <button
+              onClick={() => {
+                setStatusFilter('ALL');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer whitespace-nowrap ${
+                statusFilter === 'ALL'
+                  ? 'bg-neutral-900 text-white border-neutral-900 shadow-xs'
+                  : 'bg-white text-neutral-600 border-neutral-200 hover:border-neutral-400'
+              }`}
+            >
+              All Orders ({orders.length})
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter('CASH');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                statusFilter === 'CASH'
+                  ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
+                  : 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:border-emerald-400'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Cash Orders ({totalCash})
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter('LAYAWAY');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                statusFilter === 'LAYAWAY'
+                  ? 'bg-gold-700 text-white border-gold-700 shadow-xs'
+                  : 'bg-gold-50 text-gold-900 border-gold-300 hover:border-gold-500'
+              }`}
+            >
+              <span className="w-2 h-2 rounded-full bg-gold-500"></span>
+              Layaway Plans ({totalLayaway})
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter('PROCESSING');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                statusFilter === 'PROCESSING'
+                  ? 'bg-amber-700 text-white border-amber-700 shadow-xs'
+                  : 'bg-amber-50 text-amber-900 border-amber-300 hover:border-amber-500'
+              }`}
+            >
+              Processing ({totalProcessing})
+            </button>
+            <button
+              onClick={() => {
+                setStatusFilter('DELIVERED');
+                setCurrentPage(1);
+              }}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
+                statusFilter === 'DELIVERED'
+                  ? 'bg-blue-700 text-white border-blue-700 shadow-xs'
+                  : 'bg-blue-50 text-blue-900 border-blue-300 hover:border-blue-500'
+              }`}
+            >
+              Delivered ({totalDelivered})
+            </button>
+          </div>
+
+          {/* Search Input */}
+          <div className="w-full md:w-80">
+            <Input
+              placeholder="Filter orders by number, customer, tracking..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              leftIcon={<Search className="w-4 h-4" />}
+              className="text-xs"
+            />
+          </div>
+        </div>
 
         <BulkActionBar
           selectedCount={selectedIds.length}
@@ -971,7 +1061,7 @@ export default function AdminOrdersPage() {
                 onChange={(e) => handleCustomerSelect(e.target.value)}
                 className="w-full bg-white border border-neutral-300 rounded-lg p-2 text-xs font-medium"
               >
-                <option value="custom">👤 Walk-In Customer / Custom Entry</option>
+                <option value="custom">Walk-In Customer / Custom Entry</option>
                 {customers.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.name} ({c.email}) {c.phone ? `• ${c.phone}` : ''}
@@ -1056,12 +1146,16 @@ export default function AdminOrdersPage() {
                       <select
                         value={item.productId}
                         onChange={(e) => handleProductSelect(idx, e.target.value)}
-                        className="w-36 bg-white border border-neutral-300 rounded-lg p-1.5 text-xs"
+                        className="w-48 bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-medium"
                       >
-                        <option value="">Catalog...</option>
-                        {products.map((p) => (
-                          <option key={p.id} value={p.id}>{p.name}</option>
-                        ))}
+                        <option value="">Select from catalog...</option>
+                        {products
+                          .filter((p) => p.stockQuantity > 0)
+                          .map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.name} ({p.karat} • {p.stockQuantity} in stock)
+                            </option>
+                          ))}
                       </select>
                     )}
                     {orderItems.length > 1 && (
@@ -1081,91 +1175,97 @@ export default function AdminOrdersPage() {
                       <select
                         value={item.karat}
                         onChange={(e) => handleUpdateItem(idx, 'karat', e.target.value)}
-                        className="w-full bg-white border border-neutral-300 rounded-lg p-1 text-xs font-bold"
+                        className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-bold text-gold-700"
                       >
-                        <option value="24K">24K</option>
-                        <option value="22K">22K</option>
-                        <option value="18K">18K</option>
                         <option value="14K">14K</option>
-                        <option value="10K">10K</option>
+                        <option value="18K">18K</option>
+                        <option value="21K">21K</option>
+                        <option value="22K">22K</option>
+                        <option value="24K">24K</option>
                       </select>
                     </div>
 
                     <div>
-                      <label className="text-[10px] text-neutral-500 block mb-0.5">Weight (g)</label>
+                      <label className="text-[10px] text-neutral-500 block mb-0.5 font-bold">Weight (g)</label>
                       <input
                         type="number"
-                        step="0.1"
+                        step="0.01"
                         placeholder="0"
                         value={item.weightGrams === 0 ? '' : item.weightGrams}
                         onChange={(e) => handleUpdateItem(idx, 'weightGrams', e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white border border-neutral-300 rounded-lg p-1 text-xs font-mono"
+                        className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-mono"
                       />
                     </div>
 
                     <div>
-                      <label className="text-[10px] text-neutral-500 block mb-0.5">Qty</label>
-                      <input
-                        type="number"
-                        min="1"
-                        placeholder="1"
-                        value={item.quantity === 0 ? '' : item.quantity}
-                        onChange={(e) => handleUpdateItem(idx, 'quantity', e.target.value === '' ? 1 : parseInt(e.target.value, 10) || 1)}
-                        className="w-full bg-white border border-neutral-300 rounded-lg p-1 text-xs font-mono font-bold"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="text-[10px] text-neutral-500 block mb-0.5">Price (₱)</label>
-                      <input
-                        type="number"
-                        step="100"
-                        placeholder="0"
-                        value={item.price === 0 ? '' : item.price}
-                        onChange={(e) => handleUpdateItem(idx, 'price', e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
-                        className="w-full bg-white border border-neutral-300 rounded-lg p-1 text-xs font-mono font-black text-gold-700"
-                      />
+                      <label className="text-[10px] text-neutral-500 block mb-0.5 font-bold">Price (₱)</label>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="number"
+                          step="100"
+                          placeholder="0"
+                          value={item.price === 0 ? '' : item.price}
+                          onChange={(e) => handleUpdateItem(idx, 'price', e.target.value === '' ? 0 : parseFloat(e.target.value) || 0)}
+                          className="w-full bg-white border border-neutral-300 rounded-lg p-1.5 text-xs font-mono font-bold text-neutral-900"
+                          required
+                        />
+                        {orderItems.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveItem(idx)}
+                            className="p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-neutral-900 text-white font-mono">
-              <span className="text-xs">Order Total Amount:</span>
-              <span className="text-base font-black text-gold-400">{formatCurrency(newOrderTotal)}</span>
-            </div>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={handleAddItem}
+              leftIcon={<Plus className="w-3.5 h-3.5" />}
+              className="text-xs font-bold"
+            >
+              Add Another Line Item
+            </Button>
           </div>
 
-          {/* Payment Mode & Layaway Terms Selector */}
+          {/* Payment Terms & Plan Selection */}
           <div className="p-3.5 rounded-xl bg-white border border-neutral-200 space-y-3">
             <span className="font-bold text-neutral-800 uppercase block text-[11px]">
-              Transaction Type & Terms
+              Transaction Mode & Terms
             </span>
 
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setOrderType('CASH')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
                   orderType === 'CASH'
                     ? 'bg-neutral-900 text-white border-neutral-900 shadow-xs'
                     : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100'
                 }`}
               >
-                💵 Full Cash Sale
+                <Banknote className="w-4 h-4 text-emerald-500" /> Full Cash Sale
               </button>
 
               <button
                 type="button"
                 onClick={() => setOrderType('LAYAWAY')}
-                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer border flex items-center justify-center gap-1.5 ${
                   orderType === 'LAYAWAY'
                     ? 'bg-neutral-900 text-white border-neutral-900 shadow-xs'
                     : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:bg-neutral-100'
                 }`}
               >
-                🔒 0% Layaway (Choose Months)
+                <Lock className="w-4 h-4 text-gold-500" /> 0% Layaway (Choose Months)
               </button>
             </div>
 
@@ -1174,8 +1274,8 @@ export default function AdminOrdersPage() {
               <div className="space-y-3 pt-2 border-t border-neutral-100">
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div>
-                    <label className="text-[10px] text-neutral-600 block mb-1 font-bold">
-                      📅 Duration / Months to Pay
+                    <label className="text-[10px] text-neutral-600 flex items-center gap-1 mb-1 font-bold">
+                      <Calendar className="w-3.5 h-3.5 text-gold-600 inline" /> Duration / Months to Pay
                     </label>
                     <select
                       value={termMonths}

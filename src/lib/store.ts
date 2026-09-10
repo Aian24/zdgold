@@ -117,6 +117,9 @@ export function useSettings() {
   };
 }
 
+export const MAX_QTY_PER_ITEM = 50;
+export const MAX_TOTAL_CART_ITEMS = 100;
+
 export function useCart() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -146,23 +149,55 @@ export function useCart() {
   const addItem = (product: ProductItem, quantity: number = 1, lockedPricePerGram: number = 4850) => {
     const existingIndex = items.findIndex((item) => item.product.id === product.id);
     const unitPrice = product.calculatedPrice ?? product.basePrice;
-    
+    const currentTotalItems = items.reduce((acc, it) => acc + it.quantity, 0);
+
     if (existingIndex > -1) {
       const updated = [...items];
-      const newQty = updated[existingIndex].quantity + quantity;
+      const currentItemQty = updated[existingIndex].quantity;
+      const targetQty = currentItemQty + quantity;
+
+      // Cap at 50 per item, and cap total cart items at 100
+      const allowedTotalCapacity = MAX_TOTAL_CART_ITEMS - currentTotalItems;
+      const allowedQty = Math.min(targetQty, MAX_QTY_PER_ITEM, currentItemQty + Math.max(0, allowedTotalCapacity));
+
+      if (allowedQty <= currentItemQty) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('dg_cart_limit_reached', {
+              detail: { message: `Cart limit reached! Max ${MAX_QTY_PER_ITEM} items per piece, and ${MAX_TOTAL_CART_ITEMS} items total.` },
+            })
+          );
+        }
+        return { success: false, message: `Cart limit reached (${MAX_QTY_PER_ITEM} max per piece)` };
+      }
+
       updated[existingIndex] = {
         ...updated[existingIndex],
-        quantity: newQty,
-        totalPrice: Number((unitPrice * newQty).toFixed(2)),
+        quantity: allowedQty,
+        totalPrice: Number((unitPrice * allowedQty).toFixed(2)),
       };
       saveItems(updated);
     } else {
+      const remainingCapacity = Math.max(0, MAX_TOTAL_CART_ITEMS - currentTotalItems);
+      const allowedQty = Math.min(quantity, MAX_QTY_PER_ITEM, remainingCapacity);
+
+      if (allowedQty <= 0) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(
+            new CustomEvent('dg_cart_limit_reached', {
+              detail: { message: `Cart is full! Maximum limit is ${MAX_TOTAL_CART_ITEMS} pieces.` },
+            })
+          );
+        }
+        return { success: false, message: `Cart is full (Max ${MAX_TOTAL_CART_ITEMS} items)` };
+      }
+
       const newItem: CartItem = {
         product,
-        quantity,
+        quantity: allowedQty,
         lockedPricePerGram,
         unitPrice,
-        totalPrice: Number((unitPrice * quantity).toFixed(2)),
+        totalPrice: Number((unitPrice * allowedQty).toFixed(2)),
       };
       saveItems([...items, newItem]);
     }
@@ -172,6 +207,7 @@ export function useCart() {
         new CustomEvent('dg_cart_item_added', { detail: { product, quantity } })
       );
     }
+    return { success: true };
   };
 
   const removeItem = (productId: string) => {
@@ -183,12 +219,16 @@ export function useCart() {
       removeItem(productId);
       return;
     }
+    const otherItemsTotal = items.filter((i) => i.product.id !== productId).reduce((sum, i) => sum + i.quantity, 0);
+    const maxAllowed = Math.min(MAX_QTY_PER_ITEM, Math.max(1, MAX_TOTAL_CART_ITEMS - otherItemsTotal));
+    const finalQty = Math.min(quantity, maxAllowed);
+
     const updated = items.map((item) => {
       if (item.product.id === productId) {
         return {
           ...item,
-          quantity,
-          totalPrice: Number((item.unitPrice * quantity).toFixed(2)),
+          quantity: finalQty,
+          totalPrice: Number((item.unitPrice * finalQty).toFixed(2)),
         };
       }
       return item;
@@ -243,7 +283,7 @@ export function closeGlobalAuthModal() {
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<UserProfile | null>(DEMO_CUSTOMER);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'register' | 'admin'>('signin');
@@ -252,12 +292,19 @@ export function useAuth() {
     try {
       const stored = localStorage.getItem(USER_STORAGE_KEY);
       if (stored) {
-        setUser(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        if (parsed?.id === 'cuid-customer-sophia' || parsed?.email === 'sophia.laurent@danicagold.ph') {
+          localStorage.removeItem(USER_STORAGE_KEY);
+          setUser(null);
+        } else {
+          setUser(parsed);
+        }
       } else {
-        setUser(DEMO_CUSTOMER);
+        setUser(null);
       }
     } catch (e) {
       console.error('Failed to load user', e);
+      setUser(null);
     } finally {
       setIsLoaded(true);
     }
@@ -294,14 +341,14 @@ export function useAuth() {
     }
   };
 
-  const loginCustom = (profile: UserProfile) => {
+  const loginCustom = useCallback((profile: UserProfile) => {
     setUser(profile);
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(profile));
     } catch (e) {
       console.error('Failed to save user', e);
     }
-  };
+  }, []);
 
   const loginWithSocial = async (provider: 'google' | 'facebook' | 'apple', profileData?: Partial<UserProfile>) => {
     const defaultProfiles = {
@@ -462,14 +509,14 @@ export function useAuth() {
     }
   };
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setUser(null);
     try {
       localStorage.removeItem(USER_STORAGE_KEY);
     } catch (e) {
       console.error('Failed to clear user', e);
     }
-  };
+  }, []);
 
   return {
     user,

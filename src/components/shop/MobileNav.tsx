@@ -38,8 +38,8 @@ export const MobileNav: React.FC = () => {
               <div className="relative">
                 <Icon className={`w-5 h-5 ${isActive ? 'text-gold-600' : 'text-neutral-500'}`} />
                 {item.badge !== undefined && item.badge > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 bg-gold-500 text-white font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center shadow-xs">
-                    {item.badge}
+                  <span className="absolute -top-1.5 -right-2.5 bg-gold-600 text-white font-black text-[10px] min-w-[17px] h-[17px] px-1 rounded-full flex items-center justify-center shadow-xs border border-white">
+                    {item.badge > 99 ? '99+' : item.badge}
                   </span>
                 )}
               </div>

@@ -45,10 +45,15 @@ export async function PUT(
     const body = await request.json();
 
     const data: any = { ...body };
-    if (data.weightGrams) data.weightGrams = parseFloat(data.weightGrams);
-    if (data.craftFee !== undefined) data.craftFee = parseFloat(data.craftFee);
-    if (data.basePrice !== undefined) data.basePrice = parseFloat(data.basePrice);
-    if (data.stockQuantity !== undefined) data.stockQuantity = parseInt(data.stockQuantity, 10);
+    if (data.weightGrams !== undefined && data.weightGrams !== '') data.weightGrams = parseFloat(String(data.weightGrams));
+    if (data.craftFee !== undefined && data.craftFee !== '') data.craftFee = parseFloat(String(data.craftFee));
+    if (data.basePrice !== undefined && data.basePrice !== '') data.basePrice = parseFloat(String(data.basePrice));
+    if (data.stockQuantity !== undefined && data.stockQuantity !== '') {
+      data.stockQuantity = Math.max(0, parseInt(String(data.stockQuantity), 10));
+    }
+    if (data.purityPercentage !== undefined && data.purityPercentage !== '') {
+      data.purityPercentage = parseFloat(String(data.purityPercentage));
+    }
     if (data.images && Array.isArray(data.images)) {
       data.images = JSON.stringify(data.images);
     }

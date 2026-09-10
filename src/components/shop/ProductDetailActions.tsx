@@ -15,8 +15,10 @@ export const ProductDetailActions: React.FC<{ product: ProductItem }> = ({ produ
   const [justAdded, setJustAdded] = useState(false);
 
   const price = product.calculatedPrice ?? product.basePrice;
+  const isSold = product.stockQuantity <= 0;
 
   const handleAddToCart = () => {
+    if (isSold) return;
     addItem(product, quantity);
     setJustAdded(true);
     setTimeout(() => {
@@ -30,6 +32,30 @@ export const ProductDetailActions: React.FC<{ product: ProductItem }> = ({ produ
       el.scrollIntoView({ behavior: 'smooth' });
     }
   };
+
+  if (isSold) {
+    return (
+      <div className="space-y-3 pt-2">
+        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-center space-y-1">
+          <span className="inline-block px-3 py-1 rounded-full bg-rose-600 text-white font-black text-xs uppercase tracking-widest">
+            SOLD OUT
+          </span>
+          <p className="text-xs text-rose-800 font-bold">
+            This piece of jewelry has already been sold.
+          </p>
+          <p className="text-[11px] text-rose-600">
+            Please check our catalog for other handcrafted gold jewelry.
+          </p>
+        </div>
+
+        <Link href="/catalog" className="w-full block">
+          <Button variant="primary" size="md" className="w-full text-xs font-bold uppercase tracking-wider h-11">
+            Browse Available Jewelry
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3 pt-2">
@@ -50,8 +76,9 @@ export const ProductDetailActions: React.FC<{ product: ProductItem }> = ({ produ
           </span>
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={() => setQuantity(Math.min(product.stockQuantity || 10, quantity + 1))}
-            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-600 hover:bg-neutral-100 cursor-pointer"
+            onClick={() => setQuantity(Math.min(Math.min(product.stockQuantity || 50, 50), quantity + 1))}
+            disabled={quantity >= 50 || quantity >= (product.stockQuantity || 50)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-600 hover:bg-neutral-100 disabled:opacity-30 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
           </motion.button>

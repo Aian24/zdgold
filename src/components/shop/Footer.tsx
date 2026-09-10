@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Award, Lock, Scale } from 'lucide-react';
+import { Award, Lock, Scale, MapPin, Mail, Phone } from 'lucide-react';
 import { useSettings } from '@/lib/store';
 
 export const Footer: React.FC = () => {
@@ -76,11 +76,18 @@ export const Footer: React.FC = () => {
             <p className="text-xs text-neutral-500 leading-relaxed max-w-sm">
               {settings.companyName} is a premier high jewelry maison specializing in certified solid 14K–24K gold necklaces, royal diamond-cut chains, solitaire rings, Cuban bracelets, and customizable price-locked layaway contracts.
             </p>
-            <div className="text-xs text-neutral-600 font-medium">
-              📍 {settings.address}
+            <div className="text-xs text-neutral-600 font-medium flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-gold-600 shrink-0" />
+              <span>{settings.address}</span>
             </div>
-            <div className="text-xs text-neutral-500">
-              ✉️ {settings.email} • 📞 {settings.phone}
+            <div className="text-xs text-neutral-500 flex flex-wrap items-center gap-3">
+              <span className="flex items-center gap-1">
+                <Mail className="w-3.5 h-3.5 text-gold-600 shrink-0" /> {settings.email}
+              </span>
+              <span className="text-neutral-300">•</span>
+              <span className="flex items-center gap-1">
+                <Phone className="w-3.5 h-3.5 text-gold-600 shrink-0" /> {settings.phone}
+              </span>
             </div>
           </div>
 
@@ -88,12 +95,12 @@ export const Footer: React.FC = () => {
           <div>
             <h5 className="text-xs font-bold text-neutral-900 uppercase tracking-widest mb-4">Jewelry Collections</h5>
             <ul className="space-y-2 text-xs">
-              <li><Link href="/catalog?category=NECKLACES" className="hover:text-gold-700 transition-colors">Necklaces & Emirates Chains</Link></li>
-              <li><Link href="/catalog?category=RINGS" className="hover:text-gold-700 transition-colors">Solitaire & Crown Rings</Link></li>
-              <li><Link href="/catalog?category=BRACELETS" className="hover:text-gold-700 transition-colors">Miami Cuban Bracelets</Link></li>
-              <li><Link href="/catalog?category=BANGLES" className="hover:text-gold-700 transition-colors">Rose & Yellow Gold Bangles</Link></li>
-              <li><Link href="/catalog?category=PENDANTS" className="hover:text-gold-700 transition-colors">Sovereign & Lotus Pendants</Link></li>
-              <li><Link href="/catalog?category=EARRINGS" className="hover:text-gold-700 transition-colors">Filigree & Jhumka Earrings</Link></li>
+              <li><Link href="/catalog?category=NECKLACES" className="hover:text-gold-700 transition-colors">Necklaces</Link></li>
+              <li><Link href="/catalog?category=RINGS" className="hover:text-gold-700 transition-colors">Rings</Link></li>
+              <li><Link href="/catalog?category=BRACELETS" className="hover:text-gold-700 transition-colors">Bracelets</Link></li>
+              <li><Link href="/catalog?category=BANGLES" className="hover:text-gold-700 transition-colors">Bangles</Link></li>
+              <li><Link href="/catalog?category=PENDANTS" className="hover:text-gold-700 transition-colors">Pendants</Link></li>
+              <li><Link href="/catalog?category=EARRINGS" className="hover:text-gold-700 transition-colors">Earrings</Link></li>
             </ul>
           </div>
 
@@ -101,11 +108,10 @@ export const Footer: React.FC = () => {
           <div>
             <h5 className="text-xs font-bold text-neutral-900 uppercase tracking-widest mb-4">Client Services</h5>
             <ul className="space-y-2 text-xs">
-              <li><Link href="/account" className="hover:text-gold-700 transition-colors">Customer Portal</Link></li>
+              <li><Link href="/orders" className="hover:text-gold-700 transition-colors">Order History & Receipts</Link></li>
+              <li><Link href="/layaways" className="hover:text-gold-700 transition-colors">Layaway Payment Hub</Link></li>
+              <li><Link href="/profile" className="hover:text-gold-700 transition-colors">Profile Settings</Link></li>
               <li><Link href="/calculator" className="hover:text-gold-700 transition-colors">Live Karat Calculator</Link></li>
-              <li><Link href="/account" className="hover:text-gold-700 transition-colors">Layaway Payment Hub</Link></li>
-              <li><Link href="/catalog" className="hover:text-gold-700 transition-colors">Price-Lock Guarantee</Link></li>
-              <li><Link href="/admin" className="text-gold-700 font-bold hover:text-gold-900 transition-colors">Admin Dashboard</Link></li>
             </ul>
           </div>
 

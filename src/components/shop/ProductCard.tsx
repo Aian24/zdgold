@@ -26,11 +26,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     ? product.images[0]
     : 'https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?auto=format&fit=crop&q=80&w=800';
 
+  const isSold = product.stockQuantity <= 0;
+
   // Quick layaway estimate (20% down, 6 months)
   const minDown = price * 0.2;
   const estimatedMonthly = (price - minDown) / 6;
 
   const handleAddToCart = () => {
+    if (isSold) return;
     addItem(product, 1);
     setJustAdded(true);
     setTimeout(() => {
@@ -41,7 +44,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   return (
     <motion.div
       whileHover={{ y: -4, transition: { duration: 0.2, ease: 'easeOut' } }}
-      className="group rounded-2xl bg-white border border-gold-500/25 overflow-hidden flex flex-col justify-between transition-shadow duration-200 hover:border-gold-500/60 hover:shadow-lg"
+      className={`group rounded-2xl bg-white border border-gold-500/25 overflow-hidden flex flex-col justify-between transition-shadow duration-200 hover:border-gold-500/60 hover:shadow-lg ${
+        isSold ? 'opacity-75' : ''
+      }`}
     >
       {/* Product Image with Smooth Hover Zoom */}
       <div className="relative w-full aspect-square bg-[#FBFBFA] overflow-hidden">
@@ -53,6 +58,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
             className="object-cover object-center group-hover:scale-108 transition-transform duration-500 ease-out"
           />
+          {isSold && (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-[2px] flex items-center justify-center z-20">
+              <span className="px-3 py-1 bg-rose-600 text-white font-black text-xs uppercase tracking-widest rounded-full shadow-lg">
+                SOLD OUT
+              </span>
+            </div>
+          )}
         </Link>
 
         {/* Karat Badge */}
@@ -106,14 +118,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 variant={justAdded ? 'primary' : 'secondary'}
                 size="sm"
                 onClick={handleAddToCart}
+                disabled={isSold}
                 leftIcon={justAdded ? <Check className="w-3 h-3" /> : <ShoppingBag className="w-3 h-3" />}
                 className={`w-full text-[11px] h-8 font-bold transition-all ${
-                  justAdded
+                  isSold
+                    ? 'opacity-50 cursor-not-allowed bg-neutral-100 text-neutral-400 border-neutral-200'
+                    : justAdded
                     ? 'bg-emerald-600 border-emerald-600 text-white'
                     : 'hover:border-gold-500'
                 }`}
               >
-                {justAdded ? 'Added' : 'Add'}
+                {isSold ? 'Sold Out' : justAdded ? 'Added' : 'Add'}
               </Button>
             </motion.div>
 

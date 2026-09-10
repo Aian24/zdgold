@@ -5,10 +5,19 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
+    const userEmail = searchParams.get('userEmail');
     const status = searchParams.get('status');
 
     const where: any = {};
-    if (userId) where.userId = userId;
+    if (userId || userEmail) {
+      where.OR = [
+        ...(userId ? [{ userId }] : []),
+        ...(userEmail ? [{ user: { email: { equals: userEmail.trim(), mode: 'insensitive' as const } } }] : []),
+      ];
+    } else if (searchParams.has('userId') && !userId) {
+      // If query passed empty userId, return empty result instead of all
+      where.userId = 'no_user_match';
+    }
     if (status && status !== 'ALL') where.status = status;
 
     const orders = await prisma.order.findMany({
@@ -161,6 +170,22 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    // 4.1 Decrement product inventory stock
+    for (const it of items) {
+      const prodId = it.productId;
+      const qty = Number(it.quantity) || 1;
+      if (prodId) {
+        const existingProd = await prisma.product.findUnique({ where: { id: prodId } });
+        if (existingProd) {
+          const newStock = Math.max(0, existingProd.stockQuantity - qty);
+          await prisma.product.update({
+            where: { id: prodId },
+            data: { stockQuantity: newStock },
+          });
+        }
+      }
+    }
 
     // 5. If Layaway, create LayawayContract and Installments
     if (orderType === 'LAYAWAY') {

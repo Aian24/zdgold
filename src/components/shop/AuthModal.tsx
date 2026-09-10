@@ -49,8 +49,8 @@ export const AuthModal: React.FC = () => {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
 
   // Admin form state
-  const [adminUsername, setAdminUsername] = useState('admin');
-  const [adminPassword, setAdminPassword] = useState('Aianbasagre24');
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -70,7 +70,20 @@ export const AuthModal: React.FC = () => {
 
   if (!isAuthModalOpen) return null;
 
-  // 1. Social Login Handlers
+  // Real OAuth Login Handlers
+  const handleGoogleSignIn = () => {
+    setIsSubmitting(true);
+    const callback = typeof window !== 'undefined' ? window.location.pathname : '/account';
+    window.location.href = `/api/auth/google?callbackUrl=${encodeURIComponent(callback)}`;
+  };
+
+  const handleFacebookSignIn = () => {
+    setIsSubmitting(true);
+    const callback = typeof window !== 'undefined' ? window.location.pathname : '/account';
+    window.location.href = `/api/auth/facebook?callbackUrl=${encodeURIComponent(callback)}`;
+  };
+
+  // 1. Social Login Handlers (Modal Fallback)
   const handleQuickSocial = async (provider: 'google' | 'facebook', profile?: any) => {
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -275,7 +288,7 @@ export const AuthModal: React.FC = () => {
                   type="button"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.96 }}
-                  onClick={() => setSocialProviderModal('google')}
+                  onClick={handleGoogleSignIn}
                   disabled={isSubmitting}
                   className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-800 text-xs font-bold transition-all shadow-2xs hover:border-gold-500 cursor-pointer"
                 >
@@ -304,7 +317,7 @@ export const AuthModal: React.FC = () => {
                   type="button"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.96 }}
-                  onClick={() => setSocialProviderModal('facebook')}
+                  onClick={handleFacebookSignIn}
                   disabled={isSubmitting}
                   className="flex items-center justify-center gap-2 px-3 py-2 rounded-xl border border-[#1877F2]/30 bg-[#1877F2] hover:bg-[#166FE5] text-white text-xs font-bold transition-all shadow-2xs cursor-pointer"
                 >
@@ -327,7 +340,7 @@ export const AuthModal: React.FC = () => {
                 <Input
                   label="Email"
                   type="email"
-                  placeholder="sophia@danicagold.ph"
+                  placeholder="e.g. client@example.com"
                   value={loginEmail}
                   onChange={(e) => setLoginEmail(e.target.value)}
                   required
@@ -356,16 +369,6 @@ export const AuthModal: React.FC = () => {
                     <input type="checkbox" defaultChecked className="rounded text-gold-500 focus:ring-gold-400" />
                     <span>Remember me</span>
                   </label>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setLoginEmail('sophia.laurent@danicagold.ph');
-                      setLoginPassword('Aianbasagre24');
-                    }}
-                    className="text-gold-700 hover:text-gold-900 font-bold"
-                  >
-                    Demo Account
-                  </button>
                 </div>
 
                 <motion.div whileTap={{ scale: 0.98 }}>
@@ -400,7 +403,7 @@ export const AuthModal: React.FC = () => {
             <form onSubmit={handleRegister} className="space-y-3">
               <Input
                 label="Full Legal Name *"
-                placeholder="e.g. Sophia Laurent"
+                placeholder="e.g. Juan dela Cruz"
                 value={regName}
                 onChange={(e) => setRegName(e.target.value)}
                 required
@@ -409,7 +412,7 @@ export const AuthModal: React.FC = () => {
               <Input
                 label="Email Address *"
                 type="email"
-                placeholder="e.g. sophia@danicagold.ph"
+                placeholder="e.g. client@example.com"
                 value={regEmail}
                 onChange={(e) => setRegEmail(e.target.value)}
                 required
@@ -478,28 +481,9 @@ export const AuthModal: React.FC = () => {
           {/* TAB 3: ADMIN */}
           {activeTab === 'admin' && (
             <form onSubmit={handleAdminSignIn} className="space-y-3.5">
-              <div className="p-3 rounded-xl bg-gold-500/10 border border-gold-500/25 text-xs space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-neutral-900">Administrator Gateway</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setAdminUsername('admin');
-                      setAdminPassword('Aianbasagre24');
-                    }}
-                    className="text-[10px] font-bold text-gold-700 hover:text-gold-900 bg-gold-500/15 px-2 py-0.5 rounded border border-gold-500/30"
-                  >
-                    Fill admin
-                  </button>
-                </div>
-                <div className="grid grid-cols-2 gap-2 font-mono text-[11px] text-neutral-700">
-                  <div>User: <b>admin</b></div>
-                  <div>Pass: <b>Aianbasagre24</b></div>
-                </div>
-              </div>
-
               <Input
                 label="Admin Username or Email"
+                placeholder="Enter admin username"
                 value={adminUsername}
                 onChange={(e) => setAdminUsername(e.target.value)}
                 required
@@ -508,6 +492,7 @@ export const AuthModal: React.FC = () => {
               <Input
                 label="Master Password"
                 type="password"
+                placeholder="••••••••"
                 value={adminPassword}
                 onChange={(e) => setAdminPassword(e.target.value)}
                 required
@@ -519,10 +504,10 @@ export const AuthModal: React.FC = () => {
                   variant="primary"
                   size="md"
                   isLoading={isSubmitting}
-                  className="w-full text-xs font-bold uppercase tracking-wider mt-1"
-                  rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                  className="w-full text-xs font-bold uppercase tracking-wider mt-2"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
                 >
-                  Login to Admin Portal
+                  Authenticate Admin
                 </Button>
               </motion.div>
             </form>

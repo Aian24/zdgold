@@ -107,18 +107,20 @@ export async function POST(request: Request) {
         },
       });
 
-      // 2. Decrement product stock
+      // 2. Decrement product stock (clamped to 0)
       for (const item of items) {
         const prodId = item.product?.id || item.productId;
         if (prodId) {
-          await tx.product.update({
-            where: { id: prodId },
-            data: {
-              stockQuantity: {
-                decrement: item.quantity || 1,
+          const currentProd = await tx.product.findUnique({ where: { id: prodId } });
+          if (currentProd) {
+            const newStock = Math.max(0, currentProd.stockQuantity - (item.quantity || 1));
+            await tx.product.update({
+              where: { id: prodId },
+              data: {
+                stockQuantity: newStock,
               },
-            },
-          });
+            });
+          }
         }
       }
 

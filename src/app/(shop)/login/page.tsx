@@ -18,6 +18,9 @@ import {
   Eye,
   EyeOff,
   X,
+  LogIn,
+  UserPlus,
+  Shield,
 } from 'lucide-react';
 import { useAuth, useSettings } from '@/lib/store';
 import { Input } from '@/components/ui/Input';
@@ -55,15 +58,26 @@ export default function LoginPage() {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
 
   // Admin form state
-  const [adminUsername, setAdminUsername] = useState('admin');
-  const [adminPassword, setAdminPassword] = useState('Aianbasagre24');
+  const [adminUsername, setAdminUsername] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
-  // Social Login
+  // Real OAuth Login Handlers
+  const handleGoogleSignIn = () => {
+    setIsSubmitting(true);
+    window.location.href = '/api/auth/google?callbackUrl=/account';
+  };
+
+  const handleFacebookSignIn = () => {
+    setIsSubmitting(true);
+    window.location.href = '/api/auth/facebook?callbackUrl=/account';
+  };
+
+  // Social Login fallback / modal picker
   const handleQuickSocial = async (provider: 'google' | 'facebook', profile?: any) => {
     setIsSubmitting(true);
     setErrorMessage(null);
@@ -133,7 +147,7 @@ export default function LoginPage() {
     });
 
     if (res.success) {
-      setSuccessMessage('Account registered successfully! Welcome to Danica Gold.');
+      setSuccessMessage(`Account registered successfully! Welcome to ${settings.companyName || 'your account'}.`);
       setTimeout(() => {
         router.push('/account');
       }, 1000);
@@ -189,13 +203,13 @@ export default function LoginPage() {
             setErrorMessage(null);
             setSuccessMessage(null);
           }}
-          className={`py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
             activeTab === 'signin'
               ? 'bg-white text-neutral-900 shadow-xs'
               : 'text-neutral-500 hover:text-neutral-800'
           }`}
         >
-          💎 Sign In
+          <LogIn className="w-3.5 h-3.5" /> Sign In
         </button>
         <button
           type="button"
@@ -204,13 +218,13 @@ export default function LoginPage() {
             setErrorMessage(null);
             setSuccessMessage(null);
           }}
-          className={`py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
             activeTab === 'register'
               ? 'bg-white text-neutral-900 shadow-xs'
               : 'text-neutral-500 hover:text-neutral-800'
           }`}
         >
-          ✨ Create Account
+          <UserPlus className="w-3.5 h-3.5" /> Create Account
         </button>
         <button
           type="button"
@@ -219,13 +233,13 @@ export default function LoginPage() {
             setErrorMessage(null);
             setSuccessMessage(null);
           }}
-          className={`py-2.5 rounded-xl text-xs font-bold transition-all ${
+          className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
             activeTab === 'admin'
               ? 'bg-white text-gold-700 shadow-xs'
               : 'text-neutral-500 hover:text-neutral-800'
           }`}
         >
-          👑 Admin Gateway
+          <Shield className="w-3.5 h-3.5" /> Admin Gateway
         </button>
       </div>
 
@@ -257,7 +271,7 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => setSocialProviderModal('google')}
+              onClick={handleGoogleSignIn}
               disabled={isSubmitting}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl border border-neutral-300 bg-white hover:bg-neutral-50 text-neutral-800 text-xs font-bold transition-all shadow-xs hover:border-gold-500 cursor-pointer"
             >
@@ -284,7 +298,7 @@ export default function LoginPage() {
 
             <button
               type="button"
-              onClick={() => setSocialProviderModal('facebook')}
+              onClick={handleFacebookSignIn}
               disabled={isSubmitting}
               className="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-2xl border border-[#1877F2]/30 bg-[#1877F2] hover:bg-[#166FE5] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
             >
@@ -306,7 +320,7 @@ export default function LoginPage() {
             <Input
               label="Email Address"
               type="email"
-              placeholder="sophia@danicagold.ph"
+              placeholder="e.g. client@example.com"
               value={loginEmail}
               onChange={(e) => setLoginEmail(e.target.value)}
               leftIcon={<Mail className="w-4 h-4 text-neutral-400" />}
@@ -337,16 +351,6 @@ export default function LoginPage() {
                 <input type="checkbox" defaultChecked className="rounded text-gold-500 focus:ring-gold-400" />
                 <span>Remember me</span>
               </label>
-              <button
-                type="button"
-                onClick={() => {
-                  setLoginEmail('sophia.laurent@danicagold.ph');
-                  setLoginPassword('Aianbasagre24');
-                }}
-                className="text-gold-700 hover:text-gold-900 font-bold"
-              >
-                Fill Demo Client
-              </button>
             </div>
 
             <Button
@@ -370,7 +374,7 @@ export default function LoginPage() {
         <form onSubmit={handleRegister} className="rounded-3xl bg-white border border-gold-500/30 p-6 sm:p-8 space-y-4 shadow-sm animate-in fade-in">
           <Input
             label="Full Legal Name *"
-            placeholder="e.g. Sophia Laurent"
+            placeholder="e.g. Juan dela Cruz"
             value={regName}
             onChange={(e) => setRegName(e.target.value)}
             leftIcon={<User className="w-4 h-4 text-neutral-400" />}
@@ -380,7 +384,7 @@ export default function LoginPage() {
           <Input
             label="Email Address *"
             type="email"
-            placeholder="e.g. sophia@danicagold.ph"
+            placeholder="e.g. client@example.com"
             value={regEmail}
             onChange={(e) => setRegEmail(e.target.value)}
             leftIcon={<Mail className="w-4 h-4 text-neutral-400" />}
@@ -408,7 +412,7 @@ export default function LoginPage() {
             <Input
               label="Create Password *"
               type="password"
-              placeholder="Min 6 chars"
+              placeholder="Min 6 characters"
               value={regPassword}
               onChange={(e) => setRegPassword(e.target.value)}
               leftIcon={<KeyRound className="w-4 h-4 text-neutral-400" />}
@@ -448,32 +452,9 @@ export default function LoginPage() {
       {/* ========================================================================= */}
       {activeTab === 'admin' && (
         <form onSubmit={handleAdminSignIn} className="rounded-3xl bg-white border border-gold-500/30 p-6 sm:p-8 space-y-5 shadow-sm animate-in fade-in">
-          {/* Default Credentials Notice */}
-          <div className="p-4 rounded-2xl bg-gold-500/10 border border-gold-500/30 text-xs space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-neutral-900 flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-gold-600" />
-                Default Master Administrator
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setAdminUsername('admin');
-                  setAdminPassword('Aianbasagre24');
-                }}
-                className="text-[11px] font-bold text-gold-700 hover:text-gold-900 bg-gold-500/15 px-2.5 py-1 rounded-lg border border-gold-500/30"
-              >
-                Apply Credentials
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 pt-1 font-mono text-[11px] text-neutral-700">
-              <div>Username: <b className="text-neutral-900">admin</b></div>
-              <div>Password: <b className="text-neutral-900">Aianbasagre24</b></div>
-            </div>
-          </div>
-
           <Input
             label="Admin Username or Email"
+            placeholder="Enter admin username"
             value={adminUsername}
             onChange={(e) => setAdminUsername(e.target.value)}
             leftIcon={<User className="w-4 h-4 text-neutral-400" />}
@@ -483,6 +464,7 @@ export default function LoginPage() {
           <Input
             label="Master Password"
             type="password"
+            placeholder="••••••••"
             value={adminPassword}
             onChange={(e) => setAdminPassword(e.target.value)}
             leftIcon={<KeyRound className="w-4 h-4 text-neutral-400" />}

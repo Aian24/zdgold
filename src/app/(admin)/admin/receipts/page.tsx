@@ -679,8 +679,8 @@ export default function AdminReceiptsPage() {
 
                   {/* Start Date Calendar Picker */}
                   <div>
-                    <label className="text-[11px] font-medium text-neutral-600 block mb-0.5">
-                      📅 Start Date (Calendar)
+                    <label className="text-[11px] font-medium text-neutral-600 flex items-center gap-1 mb-0.5">
+                      <CalendarIcon className="w-3.5 h-3.5 text-gold-600 inline" /> Start Date
                     </label>
                     <input
                       type="date"
@@ -864,7 +864,7 @@ export default function AdminReceiptsPage() {
                 </div>
 
                 <div className="text-[9px] text-neutral-400 pt-1 font-mono">
-                  *** OFFICIAL DANICA GOLD RECEIPT ***
+                  *** OFFICIAL {settings.companyName ? settings.companyName.toUpperCase() : 'GOLD JEWELRY'} RECEIPT ***
                 </div>
               </div>
             </div>

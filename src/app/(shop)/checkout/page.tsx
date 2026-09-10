@@ -6,20 +6,21 @@ import Link from 'next/link';
 import confetti from 'canvas-confetti';
 import {
   Lock,
-  CreditCard,
-  Building2,
   CheckCircle2,
   ShieldCheck,
   Scale,
   ArrowRight,
   User as UserIcon,
   Wallet,
+  Banknote,
+  Smartphone,
 } from 'lucide-react';
 import { useCart, useAuth, useSettings } from '@/lib/store';
 import { calculateLayawayPlan } from '@/lib/layaway';
 import { formatCurrency, formatGrams } from '@/lib/gold-pricing';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 
 function CheckoutContent() {
   const router = useRouter();
@@ -35,15 +36,15 @@ function CheckoutContent() {
   const [checkoutMode, setCheckoutMode] = useState<'CASH' | 'LAYAWAY'>(initialMode);
   const [downPercent, setDownPercent] = useState<number>(initialDown);
   const [termMonths, setTermMonths] = useState<number>(initialTerm);
-  const [paymentMethod, setPaymentMethod] = useState<'GCASH' | 'MAYA' | 'BANK_TRANSFER' | 'CREDIT_CARD' | 'CASH'>('GCASH');
+  const [paymentMethod, setPaymentMethod] = useState<'CASH' | 'MAYA' | 'GCASH'>('CASH');
 
   // Customer form state (Philippines defaults)
-  const [customerName, setCustomerName] = useState(user?.name || 'Sophia Laurent');
-  const [customerEmail, setCustomerEmail] = useState(user?.email || 'sophia.laurent@danicagold.ph');
-  const [customerPhone, setCustomerPhone] = useState(user?.phone || '+63 917 234 5678');
-  const [shippingAddress, setShippingAddress] = useState(user?.address || 'Ayala Alabang Village, Muntinlupa City');
+  const [customerName, setCustomerName] = useState(user?.name || '');
+  const [customerEmail, setCustomerEmail] = useState(user?.email || '');
+  const [customerPhone, setCustomerPhone] = useState(user?.phone || '+63 ');
+  const [shippingAddress, setShippingAddress] = useState(user?.address || '');
   const [city, setCity] = useState(user?.city || 'Metro Manila');
-  const [postalCode, setPostalCode] = useState(user?.zipCode || '1780');
+  const [postalCode, setPostalCode] = useState(user?.zipCode || '');
 
   useEffect(() => {
     if (user) {
@@ -117,9 +118,8 @@ function CheckoutContent() {
 
   if (!isLoaded) {
     return (
-      <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <div className="w-8 h-8 border-2 border-gold-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-        <p className="text-xs text-neutral-500">Preparing Checkout...</p>
+      <div className="max-w-4xl mx-auto px-4 py-24 text-center flex items-center justify-center">
+        <Spinner size="lg" label="Preparing Checkout..." />
       </div>
     );
   }
@@ -261,7 +261,7 @@ function CheckoutContent() {
                   }`}
                 >
                   <div className="flex items-center gap-1.5 font-bold text-xs">
-                    <CreditCard className="w-3.5 h-3.5" />
+                    <Banknote className="w-3.5 h-3.5" />
                     <span>Full Cash Settlement</span>
                   </div>
                   <p className="text-[10px] opacity-90 mt-0.5">
@@ -380,31 +380,52 @@ function CheckoutContent() {
                 3. Payment Method (Philippines)
               </h3>
 
-              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
                 {[
-                  { id: 'GCASH', label: 'GCash', icon: Wallet },
-                  { id: 'MAYA', label: 'Maya', icon: Wallet },
-                  { id: 'BANK_TRANSFER', label: 'BDO / BPI', icon: Building2 },
-                  { id: 'CREDIT_CARD', label: 'Card', icon: CreditCard },
-                  { id: 'CASH', label: 'Vault / COD', icon: Scale },
+                  { id: 'CASH', label: 'Cash / COD', desc: 'Vault pickup or COD courier', icon: Banknote },
+                  { id: 'MAYA', label: 'Maya', desc: 'Maya QR / Account', icon: Wallet },
+                  { id: 'GCASH', label: 'GCash', desc: 'GCash Express / QR', icon: Smartphone },
                 ].map((pm) => {
                   const Icon = pm.icon;
+                  const isSelected = paymentMethod === pm.id;
                   return (
                     <button
                       type="button"
                       key={pm.id}
                       onClick={() => setPaymentMethod(pm.id as any)}
-                      className={`p-2.5 rounded-xl text-center border text-xs font-bold transition-all flex flex-col items-center gap-1 cursor-pointer ${
-                        paymentMethod === pm.id
-                          ? 'bg-gold-500 text-white border-gold-500 shadow-2xs'
-                          : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-gold-500'
+                      className={`p-3 rounded-xl text-center border text-xs font-bold transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
+                        isSelected
+                          ? 'bg-gold-500 text-white border-gold-500 shadow-2xs ring-2 ring-gold-500/20'
+                          : 'bg-neutral-50 text-neutral-700 border-neutral-200 hover:border-gold-500 hover:bg-gold-500/5'
                       }`}
                     >
-                      <Icon className="w-3.5 h-3.5" />
-                      <span className="truncate w-full text-[11px]">{pm.label}</span>
+                      <Icon className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-gold-600'}`} />
+                      <span className="truncate w-full text-xs font-bold">{pm.label}</span>
+                      <span className={`text-[10px] truncate max-w-full font-normal ${isSelected ? 'text-white/85' : 'text-neutral-500'}`}>
+                        {pm.desc}
+                      </span>
                     </button>
                   );
                 })}
+              </div>
+
+              {/* Payment Details / Instructions Banner */}
+              <div className="mt-2 p-3 rounded-xl bg-gold-500/10 border border-gold-500/30 text-xs text-neutral-800">
+                {paymentMethod === 'CASH' && (
+                  <p>
+                    <strong className="text-gold-800 font-bold">Cash / COD:</strong> Settle payment in cash upon insured vault courier delivery to your address or in-person pickup.
+                  </p>
+                )}
+                {paymentMethod === 'MAYA' && (
+                  <p>
+                    <strong className="text-gold-800 font-bold">Maya:</strong> Pay via Maya QR code or transfer to our verified merchant account upon checkout.
+                  </p>
+                )}
+                {paymentMethod === 'GCASH' && (
+                  <p>
+                    <strong className="text-gold-800 font-bold">GCash:</strong> Pay via GCash Express Send or scan official QR code to our verified merchant number.
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -494,9 +515,8 @@ export default function CheckoutPage() {
   return (
     <Suspense
       fallback={
-        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-          <div className="w-8 h-8 border-2 border-gold-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-          <p className="text-xs text-neutral-500">Loading Checkout...</p>
+        <div className="max-w-4xl mx-auto px-4 py-24 text-center flex items-center justify-center">
+          <Spinner size="lg" label="Loading Checkout..." />
         </div>
       }
     >

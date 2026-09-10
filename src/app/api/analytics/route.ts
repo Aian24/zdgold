@@ -146,13 +146,13 @@ export async function GET() {
     };
 
     const categoryNamesMap: Record<string, string> = {
-      NECKLACES: 'Necklaces & Chains',
-      RINGS: 'Rings & Solitaires',
-      BRACELETS: 'Bracelets & Bangles',
-      BANGLES: 'Bangles & Cuffs',
-      PENDANTS: 'Pendants & Medallions',
-      EARRINGS: 'Earrings & Studs',
-      JEWELRY: 'Fine Gold Jewelry',
+      NECKLACES: 'Necklaces',
+      RINGS: 'Rings',
+      BRACELETS: 'Bracelets',
+      BANGLES: 'Bangles',
+      PENDANTS: 'Pendants',
+      EARRINGS: 'Earrings',
+      JEWELRY: 'Other Jewelry',
     };
 
     // Calculate category values based on sold items (if any), otherwise product inventory
