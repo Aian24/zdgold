@@ -1,6 +1,26 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+function getAppOrigin(request: Request): string {
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0 && !envUrl.includes('localhost')) {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  if (forwardedHost) {
+    const host = forwardedHost.split(',')[0].trim();
+    return `${forwardedProto}://${host}`.replace(/\/+$/, '');
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/+$/, '');
+  }
+
+  return new URL(request.url).origin;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
@@ -25,14 +45,14 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL('/login?error=Missing+Facebook+authorization+code', request.url));
   }
 
-  const clientId = process.env.FACEBOOK_CLIENT_ID;
-  const clientSecret = process.env.FACEBOOK_CLIENT_SECRET;
+  const clientId = process.env.FACEBOOK_CLIENT_ID || process.env.FACEBOOK_APP_ID || process.env.NEXT_PUBLIC_FACEBOOK_APP_ID;
+  const clientSecret = process.env.FACEBOOK_CLIENT_SECRET || process.env.FACEBOOK_APP_SECRET;
 
   if (!clientId || !clientSecret) {
     return NextResponse.redirect(new URL('/login?error=Facebook+OAuth+credentials+missing+in+server+config', request.url));
   }
 
-  const origin = url.origin;
+  const origin = getAppOrigin(request);
   const redirectUri = `${origin}/api/auth/callback/facebook`;
 
   try {

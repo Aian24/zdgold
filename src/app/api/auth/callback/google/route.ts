@@ -1,6 +1,26 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+function getAppOrigin(request: Request): string {
+  const envUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+  if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0 && !envUrl.includes('localhost')) {
+    return envUrl.trim().replace(/\/+$/, '');
+  }
+
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const forwardedProto = request.headers.get('x-forwarded-proto') || 'https';
+  if (forwardedHost) {
+    const host = forwardedHost.split(',')[0].trim();
+    return `${forwardedProto}://${host}`.replace(/\/+$/, '');
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`.replace(/\/+$/, '');
+  }
+
+  return new URL(request.url).origin;
+}
+
 export async function GET(request: Request) {
   const url = new URL(request.url);
   const code = url.searchParams.get('code');
@@ -27,14 +47,14 @@ export async function GET(request: Request) {
     return NextResponse.redirect(new URL('/login?error=Missing+authorization+code', request.url));
   }
 
-  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientId = process.env.GOOGLE_CLIENT_ID || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     return NextResponse.redirect(new URL('/login?error=Google+OAuth+credentials+missing+in+server+config', request.url));
   }
 
-  const origin = url.origin;
+  const origin = getAppOrigin(request);
   const redirectUri = `${origin}/api/auth/callback/google`;
 
   try {
