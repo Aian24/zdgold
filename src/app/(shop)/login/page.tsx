@@ -56,10 +56,13 @@ export default function LoginPage() {
   const [regAddress, setRegAddress] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
 
   // Admin form state
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -309,11 +312,12 @@ export default function LoginPage() {
             </button>
           </div>
 
-          <div className="relative flex items-center justify-center">
-            <div className="border-t border-neutral-200 w-full" />
-            <span className="bg-white px-3 text-[10px] text-neutral-400 uppercase font-mono font-bold">
+          <div className="flex items-center gap-3 my-2">
+            <div className="flex-1 h-px bg-neutral-200" />
+            <span className="text-[10px] text-neutral-400 uppercase font-mono font-bold tracking-wider whitespace-nowrap">
               Or sign in with email
             </span>
+            <div className="flex-1 h-px bg-neutral-200" />
           </div>
 
           <form onSubmit={handleEmailSignIn} className="space-y-4">
@@ -327,24 +331,25 @@ export default function LoginPage() {
               required
             />
 
-            <div className="relative">
-              <Input
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={loginPassword}
-                onChange={(e) => setLoginPassword(e.target.value)}
-                leftIcon={<KeyRound className="w-4 h-4 text-neutral-400" />}
-                required
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3.5 top-8 text-neutral-400 hover:text-neutral-700"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+            <Input
+              label="Password"
+              type={showPassword ? 'text' : 'password'}
+              placeholder="••••••••"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+              leftIcon={<KeyRound className="w-4 h-4 text-neutral-400" />}
+              required
+              rightAction={
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
+            />
 
             <div className="flex items-center justify-between text-xs pt-1">
               <label className="flex items-center gap-2 cursor-pointer text-neutral-600">
@@ -393,7 +398,7 @@ export default function LoginPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
-              label="Mobile Phone (+63)"
+              label="Mobile Number (+63)"
               placeholder="+63 917 123 4567"
               value={regPhone}
               onChange={(e) => setRegPhone(e.target.value)}
@@ -411,21 +416,41 @@ export default function LoginPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
               label="Create Password *"
-              type="password"
+              type={showRegPassword ? 'text' : 'password'}
               placeholder="Min 6 characters"
               value={regPassword}
               onChange={(e) => setRegPassword(e.target.value)}
               leftIcon={<KeyRound className="w-4 h-4 text-neutral-400" />}
               required
+              rightAction={
+                <button
+                  type="button"
+                  onClick={() => setShowRegPassword(!showRegPassword)}
+                  className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
+                  title={showRegPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
             />
             <Input
               label="Confirm Password *"
-              type="password"
+              type={showRegConfirmPassword ? 'text' : 'password'}
               placeholder="Re-type password"
               value={regConfirmPassword}
               onChange={(e) => setRegConfirmPassword(e.target.value)}
               leftIcon={<KeyRound className="w-4 h-4 text-neutral-400" />}
               required
+              rightAction={
+                <button
+                  type="button"
+                  onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                  className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
+                  title={showRegConfirmPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showRegConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              }
             />
           </div>
 
@@ -463,12 +488,22 @@ export default function LoginPage() {
 
           <Input
             label="Master Password"
-            type="password"
+            type={showAdminPassword ? 'text' : 'password'}
             placeholder="••••••••"
             value={adminPassword}
             onChange={(e) => setAdminPassword(e.target.value)}
             leftIcon={<KeyRound className="w-4 h-4 text-neutral-400" />}
             required
+            rightAction={
+              <button
+                type="button"
+                onClick={() => setShowAdminPassword(!showAdminPassword)}
+                className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
+                title={showAdminPassword ? 'Hide password' : 'Show password'}
+              >
+                {showAdminPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            }
           />
 
           <Button

@@ -47,6 +47,8 @@ export const AuthModal: React.FC = () => {
   const [regAddress, setRegAddress] = useState('');
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
+  const [showRegPassword, setShowRegPassword] = useState(false);
+  const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
 
   // Admin form state
   const [adminUsername, setAdminUsername] = useState('');
@@ -331,11 +333,12 @@ export const AuthModal: React.FC = () => {
                 </motion.button>
               </div>
 
-              <div className="relative flex items-center justify-center">
-                <div className="border-t border-neutral-200 w-full" />
-                <span className="bg-white px-2 text-[10px] text-neutral-400 uppercase font-mono font-bold">
+              <div className="flex items-center gap-3 my-1">
+                <div className="flex-1 h-px bg-neutral-200" />
+                <span className="text-[10px] text-neutral-400 uppercase font-mono font-bold tracking-wider whitespace-nowrap">
                   Or with email
                 </span>
+                <div className="flex-1 h-px bg-neutral-200" />
               </div>
 
               {/* Email Form */}
@@ -349,23 +352,24 @@ export const AuthModal: React.FC = () => {
                   required
                 />
 
-                <div className="relative">
-                  <Input
-                    label="Password"
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={loginPassword}
-                    onChange={(e) => setLoginPassword(e.target.value)}
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-7 text-neutral-400 hover:text-neutral-700"
-                  >
-                    {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
+                <Input
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  required
+                  rightAction={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
+                      title={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  }
+                />
 
                 <div className="flex items-center justify-between text-[11px] pt-0.5">
                   <label className="flex items-center gap-1.5 cursor-pointer text-neutral-600">
@@ -439,19 +443,39 @@ export const AuthModal: React.FC = () => {
               <div className="grid grid-cols-2 gap-2">
                 <Input
                   label="Password *"
-                  type="password"
+                  type={showRegPassword ? 'text' : 'password'}
                   placeholder="Min 6 chars"
                   value={regPassword}
                   onChange={(e) => setRegPassword(e.target.value)}
                   required
+                  rightAction={
+                    <button
+                      type="button"
+                      onClick={() => setShowRegPassword(!showRegPassword)}
+                      className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
+                      title={showRegPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showRegPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  }
                 />
                 <Input
                   label="Confirm *"
-                  type="password"
+                  type={showRegConfirmPassword ? 'text' : 'password'}
                   placeholder="Re-type"
                   value={regConfirmPassword}
                   onChange={(e) => setRegConfirmPassword(e.target.value)}
                   required
+                  rightAction={
+                    <button
+                      type="button"
+                      onClick={() => setShowRegConfirmPassword(!showRegConfirmPassword)}
+                      className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
+                      title={showRegConfirmPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showRegConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  }
                 />
               </div>
 
@@ -492,23 +516,24 @@ export const AuthModal: React.FC = () => {
                 required
               />
 
-              <div className="relative">
-                <Input
-                  label="Master Password"
-                  type={showAdminPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowAdminPassword(!showAdminPassword)}
-                  className="absolute right-3 top-7 text-neutral-400 hover:text-neutral-700 cursor-pointer"
-                >
-                  {showAdminPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                </button>
-              </div>
+              <Input
+                label="Master Password"
+                type={showAdminPassword ? 'text' : 'password'}
+                placeholder="••••••••"
+                value={adminPassword}
+                onChange={(e) => setAdminPassword(e.target.value)}
+                required
+                rightAction={
+                  <button
+                    type="button"
+                    onClick={() => setShowAdminPassword(!showAdminPassword)}
+                    className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
+                    title={showAdminPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showAdminPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                }
+              />
 
               <motion.div whileTap={{ scale: 0.98 }}>
                 <Button
