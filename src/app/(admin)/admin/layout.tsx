@@ -87,10 +87,11 @@ export default function AdminLayout({
 
   return (
     <div
-      className="min-h-screen flex flex-col md:flex-row overflow-x-hidden print:bg-white print:overflow-visible transition-colors duration-200"
+      className="min-h-screen flex flex-col md:flex-row print:bg-white print:overflow-visible transition-colors duration-200"
       style={{
         backgroundColor: 'var(--theme-bg-main, #FCFCF9)',
         color: 'var(--theme-text-primary, #1A1A1A)',
+        fontFamily: 'var(--theme-font-body, sans-serif)',
       }}
     >
       {/* Mobile Admin Header */}
@@ -111,9 +112,14 @@ export default function AdminLayout({
               color: 'var(--theme-primary-text, #FFFFFF)',
             }}
           >
-            DG
+            {settings.companyName.split(' ').map((w) => w[0]).join('').slice(0, 2) || 'ZD'}
           </motion.div>
-          <span className="font-serif font-bold">{settings.companyName} Admin</span>
+          <span
+            className="font-serif font-bold text-sm"
+            style={{ fontFamily: 'var(--theme-font-heading, serif)' }}
+          >
+            {settings.companyName} Admin
+          </span>
         </div>
         <motion.button
           whileTap={{ scale: 0.9 }}
@@ -125,15 +131,16 @@ export default function AdminLayout({
         </motion.button>
       </div>
 
-      {/* Sidebar Navigation with Spring Animations */}
+      {/* Sidebar Navigation with Fixed Width, Sticky Lock, and Customization Theme Engine */}
       <aside
-        className={`no-print fixed md:sticky top-0 h-screen w-60 border-r p-5 flex flex-col justify-between z-40 transition-all duration-300 shadow-sm ${
+        className={`no-print fixed md:sticky top-0 h-screen w-64 shrink-0 flex-shrink-0 border-r p-5 flex flex-col justify-between z-40 transition-all duration-300 shadow-sm overflow-y-auto overflow-x-hidden ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
         }`}
         style={{
           backgroundColor: 'var(--theme-sidebar-bg, #FFFFFF)',
           color: 'var(--theme-sidebar-text, #1A1A1A)',
           borderColor: 'var(--theme-border-card, #E8DFCA)',
+          fontFamily: 'var(--theme-font-body, sans-serif)',
         }}
       >
         <div className="space-y-6">
@@ -146,7 +153,7 @@ export default function AdminLayout({
             {settings.logoUrl ? (
               <motion.div
                 whileHover={{ scale: 1.08 }}
-                className="w-9 h-9 rounded-full overflow-hidden border bg-white flex items-center justify-center shadow-xs"
+                className="w-10 h-10 rounded-full overflow-hidden border bg-white flex items-center justify-center shadow-xs flex-shrink-0"
                 style={{ borderColor: 'var(--theme-primary, #D4AF37)' }}
               >
                 <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-cover" />
@@ -154,7 +161,7 @@ export default function AdminLayout({
             ) : (
               <motion.div
                 whileHover={{ scale: 1.08, rotate: 4 }}
-                className="w-9 h-9 rounded-full flex items-center justify-center p-0.5 shadow-xs"
+                className="w-10 h-10 rounded-full flex items-center justify-center p-0.5 shadow-xs flex-shrink-0"
                 style={{
                   background: `linear-gradient(135deg, var(--theme-primary, #D4AF37) 0%, var(--theme-accent, #B8860B) 100%)`,
                 }}
@@ -167,17 +174,24 @@ export default function AdminLayout({
                     className="font-serif font-black text-xs"
                     style={{ color: 'var(--theme-primary, #D4AF37)' }}
                   >
-                    {settings.companyName.split(' ').map((w) => w[0]).join('').slice(0, 2) || 'DG'}
+                    {settings.companyName.split(' ').map((w) => w[0]).join('').slice(0, 2) || 'ZD'}
                   </span>
                 </div>
               </motion.div>
             )}
-            <div>
-              <span className="text-xs font-black font-serif tracking-wider uppercase block transition-colors">
+            <div className="min-w-0">
+              <span
+                className="text-sm font-black font-serif tracking-wider uppercase block truncate transition-colors"
+                style={{
+                  fontFamily: 'var(--theme-font-heading, serif)',
+                  letterSpacing: 'var(--theme-heading-spacing, 0.03em)',
+                  color: 'var(--theme-sidebar-text, #1A1A1A)',
+                }}
+              >
                 {settings.companyName}
               </span>
               <span
-                className="text-[10px] uppercase font-mono font-bold"
+                className="text-[10px] uppercase font-mono font-bold block tracking-wider"
                 style={{ color: 'var(--theme-primary, #D4AF37)' }}
               >
                 Admin Center
@@ -185,7 +199,7 @@ export default function AdminLayout({
             </div>
           </Link>
 
-          {/* Navigation Links with Animated Active Pill */}
+          {/* Navigation Links with Animated Active Pill & Dynamic Font */}
           <nav className="space-y-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
@@ -205,17 +219,18 @@ export default function AdminLayout({
                       color: isActive
                         ? 'var(--theme-primary-text, #FFFFFF)'
                         : 'var(--theme-sidebar-text, #1A1A1A)',
+                      fontFamily: 'var(--theme-font-body, sans-serif)',
                     }}
                   >
                     <Icon
-                      className="w-4 h-4"
+                      className="w-4 h-4 flex-shrink-0"
                       style={{
                         color: isActive
                           ? 'var(--theme-primary-text, #FFFFFF)'
                           : 'var(--theme-primary, #D4AF37)',
                       }}
                     />
-                    <span>{item.label}</span>
+                    <span className="truncate">{item.label}</span>
                   </motion.div>
 
                   {isActive && (
@@ -236,7 +251,7 @@ export default function AdminLayout({
 
         {/* Bottom Sidebar */}
         <div
-          className="pt-4 border-t space-y-2"
+          className="pt-4 border-t space-y-2 mt-auto"
           style={{ borderColor: 'var(--theme-border-card, rgba(0,0,0,0.08))' }}
         >
           <Link href="/">
@@ -248,9 +263,10 @@ export default function AdminLayout({
                 backgroundColor: 'rgba(212, 175, 55, 0.12)',
                 borderColor: 'var(--theme-border-card, rgba(212, 175, 55, 0.3))',
                 color: 'var(--theme-sidebar-text, #1A1A1A)',
+                fontFamily: 'var(--theme-font-body, sans-serif)',
               }}
             >
-              <Store className="w-4 h-4" style={{ color: 'var(--theme-primary, #D4AF37)' }} />
+              <Store className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--theme-primary, #D4AF37)' }} />
               <span>View Storefront</span>
             </motion.div>
           </Link>
@@ -261,14 +277,18 @@ export default function AdminLayout({
             whileTap={{ scale: 0.98 }}
             onClick={() => logout(true)}
             className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 shadow-2xs"
+            style={{ fontFamily: 'var(--theme-font-body, sans-serif)' }}
           >
-            <LogOut className="w-4 h-4 text-red-600" />
+            <LogOut className="w-4 h-4 text-red-600 flex-shrink-0" />
             <span>Sign Out</span>
           </motion.button>
 
           <div
             className="px-3.5 py-1 text-[11px] font-medium truncate opacity-75"
-            style={{ color: 'var(--theme-sidebar-text, #1A1A1A)' }}
+            style={{
+              color: 'var(--theme-sidebar-text, #1A1A1A)',
+              fontFamily: 'var(--theme-font-body, sans-serif)',
+            }}
           >
             Admin: <b>{user?.name || 'Administrator'}</b>
           </div>
