@@ -228,11 +228,11 @@ export const AuthModal: React.FC = () => {
 
           {/* Brand Header */}
           <div className="text-center space-y-2 mb-4">
-            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 border border-gold-500/50 shadow-md p-1 mx-auto flex items-center justify-center overflow-hidden">
+            <div className="w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-white border-2 border-gold-500/40 shadow-sm p-1.5 mx-auto flex items-center justify-center overflow-hidden">
               <img
                 src={settings.logoUrl || '/images/logo.png'}
                 alt={settings.companyName || 'ZD Gold'}
-                className="w-full h-full object-contain rounded-full"
+                className="w-full h-full object-contain"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = '/images/logo.png';
                 }}
