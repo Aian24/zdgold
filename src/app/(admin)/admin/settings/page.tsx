@@ -138,10 +138,10 @@ export default function AdminSettingsPage() {
           )}
           <div>
             <h2 className="text-lg font-black font-serif text-neutral-900 uppercase tracking-wider">
-              {formData.companyName || 'DANICA GOLD'}
+              {formData.companyName || 'ZD GOLD'}
             </h2>
             <p className="text-xs text-gold-600 font-bold uppercase tracking-widest">
-              {formData.tagline || 'Haute Joaillerie & Fine Gold'}
+              {formData.tagline || 'Fine Gold Jewelry & 0% Interest Layaway'}
             </p>
             <p className="text-[11px] text-neutral-500 mt-0.5">{formData.address}</p>
           </div>
@@ -158,7 +158,7 @@ export default function AdminSettingsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
             label="Company / Brand Name"
-            placeholder="e.g. DANICA GOLD PHILIPPINES"
+            placeholder="e.g. ZD GOLD"
             value={formData.companyName}
             onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
             required
@@ -166,7 +166,7 @@ export default function AdminSettingsPage() {
 
           <Input
             label="Brand Tagline / Subtitle"
-            placeholder="e.g. Haute Joaillerie & Fine Gold"
+            placeholder="e.g. Fine Gold Jewelry & 0% Interest Layaway"
             value={formData.tagline}
             onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
             required

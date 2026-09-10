@@ -90,7 +90,7 @@ export async function POST(request: Request) {
     }
 
     if (!user) {
-      const email = customerEmail || `client-${Date.now()}@danicagold.local`;
+      const email = customerEmail || `client-${Date.now()}@zdgold.local`;
       user = await prisma.user.findUnique({ where: { email } });
       if (!user) {
         user = await prisma.user.create({

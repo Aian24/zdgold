@@ -155,10 +155,10 @@ export default function InvoicePage({
               {settings.companyName || 'ZD GOLD PHILIPPINES'}
             </h2>
             <p className="text-[11px] sm:text-xs print:text-xs text-black font-bold tracking-wide">
-              {settings.tagline || 'Haute Joaillerie & Certified Fine Gold House'}
+              {settings.tagline || 'Fine Gold Jewelry & 0% Interest Layaway'}
             </p>
             <p className="text-[10px] sm:text-[11px] print:text-xs text-black font-medium leading-tight">
-              {settings.address || 'Flagship Boutique & Vault'}<br />
+              {settings.address || 'Metro Manila, Philippines'}<br />
               Tel: {settings.phone || '+63 (02) 8888-GOLD'}
             </p>
             <div className="pt-1.5 print:pt-2">

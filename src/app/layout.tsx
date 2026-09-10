@@ -3,9 +3,9 @@ import './globals.css';
 import { ThemeProvider } from '@/components/ThemeProvider';
 
 export const metadata: Metadata = {
-  title: 'ZD Gold | Haute Joaillerie & Fine Gold House',
+  title: 'ZD Gold | Fine Gold Jewelry & 0% Interest Layaway',
   description:
-    'Premier luxury retail gold jewelry and fine bullion house. Shop certified hallmarked gold, cash checkout, or price-locked flexible layaway installment plans.',
+    'Premier authentic fine gold jewelry house. Shop genuine 14K, 18K, 22K, and 24K solid gold jewelry with cash checkout or 0% interest flexible layaway plans.',
   icons: {
     icon: [
       { url: '/favicon.ico' },

@@ -89,12 +89,14 @@ export default async function ProductDetailPage({
               <Badge variant="outline-gold" size="md" className="bg-white/95 backdrop-blur-md">
                 {product.karat} SOLID GOLD
               </Badge>
-              {product.hallmarkCertNumber && (
-                <Badge variant="emerald" size="md" className="bg-white/95 backdrop-blur-md">
-                  <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
-                  Hallmark: {product.hallmarkCertNumber}
-                </Badge>
-              )}
+              <Badge
+                variant={product.stockQuantity > 0 ? "emerald" : "outline-gold"}
+                size="md"
+                className="bg-white/95 backdrop-blur-md font-bold font-mono"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 mr-1 text-emerald-600" />
+                {product.stockQuantity > 0 ? `Stock: ${product.stockQuantity} pcs` : 'Sold Out'}
+              </Badge>
             </div>
 
             <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-gold-500/30 text-xs font-mono font-bold text-neutral-800 flex items-center gap-1.5 shadow-sm">

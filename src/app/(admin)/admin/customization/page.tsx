@@ -117,7 +117,7 @@ export default function AdminCustomizationPage() {
   const handleReset = async () => {
     const confirmed = await showConfirmDialog({
       title: 'Reset All Customizations?',
-      text: 'This will revert all system colors, typography, tables, and card styles back to the factory Danica Royal Gold theme.',
+      text: 'This will revert all system colors, typography, tables, and card styles back to the factory ZD Royal Gold theme.',
       confirmButtonText: 'Yes, Reset Theme',
       isDanger: true,
     });
@@ -131,7 +131,7 @@ export default function AdminCustomizationPage() {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(theme, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `danica-gold-theme-${Date.now()}.json`);
+    downloadAnchor.setAttribute('download', `zd-gold-theme-${Date.now()}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -1470,7 +1470,7 @@ export default function AdminCustomizationPage() {
                       fontSize: theme.fontSizeBase,
                     }}
                   >
-                    Danica Gold Haute Joaillerie presents certified hallmarked fine jewelry, Swiss bullion, and price-locked flexible layaway plans.
+                    ZD Gold Fine Jewelry Vault presents certified fine jewelry, Swiss bullion, and price-locked flexible layaway plans.
                   </p>
 
                   <div

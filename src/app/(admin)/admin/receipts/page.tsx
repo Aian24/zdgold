@@ -747,7 +747,7 @@ export default function AdminReceiptsPage() {
                   {settings.companyName}
                 </h2>
                 <p className="text-[11px] text-neutral-600 font-medium">
-                  {settings.tagline || 'Fine Jewelry & Haute Joaillerie'}
+                  {settings.tagline || 'Fine Gold Jewelry & 0% Interest Layaway'}
                 </p>
                 <p className="text-[10px] text-neutral-500 leading-tight">
                   {settings.address}<br />

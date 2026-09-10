@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     if (!activeUserId) {
       // Find or create customer
       const existingUser = await prisma.user.findFirst({
-        where: { email: customerInfo?.email || 'guest@danicagold.com' },
+        where: { email: customerInfo?.email || 'guest@zdgold.ph' },
       });
 
       if (existingUser) {
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       } else {
         const newUser = await prisma.user.create({
           data: {
-            email: customerInfo?.email || `customer-${Date.now()}@danicagold.com`,
+            email: customerInfo?.email || `customer-${Date.now()}@zdgold.ph`,
             name: customerInfo?.name || 'Valued Customer',
             phone: customerInfo?.phone || null,
             address: shippingAddress || null,
@@ -91,7 +91,7 @@ export async function POST(request: Request) {
           shippingAddress: shippingAddress || 'Standard Vault Pickup',
           city: city || 'New York',
           postalCode: postalCode || '10001',
-          courier: 'Danica Insured Armored Delivery',
+          courier: 'ZD Gold Insured Vault Courier',
           orderItems: {
             create: items.map((item: any) => ({
               productId: item.product?.id || item.productId,

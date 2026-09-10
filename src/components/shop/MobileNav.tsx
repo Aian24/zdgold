@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, Grid, Calculator, ShoppingBag, User } from 'lucide-react';
+import { Home, Grid, ShoppingBag, User } from 'lucide-react';
 import { useCart } from '@/lib/store';
 
 export const MobileNav: React.FC = () => {
@@ -13,7 +13,6 @@ export const MobileNav: React.FC = () => {
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/catalog', label: 'Catalog', icon: Grid },
-    { href: '/calculator', label: 'Calc', icon: Calculator },
     { href: '/cart', label: 'Cart', icon: ShoppingBag, badge: itemCount },
     { href: '/account', label: 'Portal', icon: User },
   ];

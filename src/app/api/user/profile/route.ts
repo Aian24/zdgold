@@ -71,7 +71,7 @@ export async function PUT(request: Request) {
       existingUser = await prisma.user.create({
         data: {
           id: id || undefined,
-          email: (email || `user_${Date.now()}@danicagold.ph`).toLowerCase().trim(),
+          email: (email || `user_${Date.now()}@zdgold.ph`).toLowerCase().trim(),
           name: name?.trim() || 'Client',
           phone: phone?.trim() || '+63 ',
           address: address?.trim() || '',

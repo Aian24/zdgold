@@ -19,7 +19,6 @@ import { FadeInUp, StaggerContainer, StaggerItem } from '@/components/animations
 export default function HomePage() {
   const { settings } = useSettings();
   const [featured, setFeatured] = useState<ProductItem[]>([]);
-  const [latest, setLatest] = useState<ProductItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -28,8 +27,7 @@ export default function HomePage() {
         const res = await fetch('/api/products');
         const data = await res.json();
         if (data.success && data.products) {
-          setFeatured(data.products.slice(0, 4));
-          setLatest(data.products);
+          setFeatured(data.products.slice(0, 8));
         }
       } catch (e) {
         console.error('Error fetching products', e);
@@ -123,15 +121,15 @@ export default function HomePage() {
               >
                 <div>
                   <span className="block text-lg font-black text-neutral-900 font-serif">100%</span>
-                  <span className="text-[10px] text-neutral-500 uppercase font-bold">Hallmarked</span>
+                  <span className="text-[10px] text-neutral-500 uppercase font-bold">Real Solid Gold</span>
                 </div>
                 <div>
                   <span className="block text-lg font-black text-gold-700 font-serif">0%</span>
-                  <span className="text-[10px] text-neutral-500 uppercase font-bold">Layaway Fee</span>
+                  <span className="text-[10px] text-neutral-500 uppercase font-bold">Interest Layaway</span>
                 </div>
                 <div>
-                  <span className="block text-lg font-black text-neutral-900 font-serif">Direct</span>
-                  <span className="text-[10px] text-neutral-500 uppercase font-bold">From Vault</span>
+                  <span className="block text-lg font-black text-neutral-900 font-serif">Fast</span>
+                  <span className="text-[10px] text-neutral-500 uppercase font-bold">Insured Delivery</span>
                 </div>
               </motion.div>
             </motion.div>
@@ -150,7 +148,7 @@ export default function HomePage() {
                 <div className="relative w-40 h-40 sm:w-48 sm:h-48 rounded-2xl overflow-hidden flex items-center justify-center p-2 mb-3 group-hover:scale-105 transition-transform duration-500">
                   <Image
                     src={settings.logoUrl || '/images/logo.png'}
-                    alt={settings.companyName || 'Danica Gold'}
+                    alt={settings.companyName || 'ZD Gold'}
                     fill
                     priority
                     className="object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.6)]"
@@ -159,20 +157,20 @@ export default function HomePage() {
 
                 <div className="relative z-10 space-y-1.5 max-w-xs">
                   <span className="text-[10px] font-bold text-gold-400 uppercase tracking-widest block font-mono">
-                    Official Fine Jewelry Maison
+                    Fine Gold Jewelry
                   </span>
                   <h3 className="text-base sm:text-lg font-black font-serif text-white tracking-wide">
-                    {settings.companyName || 'DANICA GOLD PHILIPPINES'}
+                    {settings.companyName || 'ZD GOLD'}
                   </h3>
                   <p className="text-xs text-neutral-400 font-medium leading-relaxed">
-                    {settings.tagline || 'Haute Joaillerie & Certified Fine Gold'}
+                    {settings.tagline || 'Fine Gold Jewelry & 0% Interest Layaway'}
                   </p>
                 </div>
 
                 <div className="relative z-10 mt-5 pt-4 border-t border-gold-500/20 w-full flex items-center justify-between text-[11px] font-mono text-gold-300">
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    Live Vault Certified
+                    Authentic Gold Guaranteed
                   </span>
                   <span className="text-neutral-400">14K • 18K • 22K • 24K</span>
                 </div>
@@ -257,45 +255,6 @@ export default function HomePage() {
         ) : (
           <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {featured.map((product) => (
-              <StaggerItem key={product.id}>
-                <ProductCard product={product} />
-              </StaggerItem>
-            ))}
-          </StaggerContainer>
-        )}
-      </section>
-
-      {/* 4. LATEST ARRIVALS (Live from Database) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <FadeInUp className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg sm:text-xl font-black font-serif text-neutral-900">
-              Latest Vault Arrivals
-            </h2>
-            <p className="text-xs text-neutral-500">Recently added certified pieces</p>
-          </div>
-          <Link
-            href="/catalog"
-            className="text-xs font-bold text-gold-700 hover:text-gold-900 flex items-center gap-1 transition-colors group"
-          >
-            <span>Filter All Categories</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        </FadeInUp>
-
-        {isLoading ? (
-          <div className="py-12 text-center">
-            <div className="w-8 h-8 border-2 border-gold-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-            <p className="text-xs text-neutral-500">Loading catalog...</p>
-          </div>
-        ) : latest.length === 0 ? (
-          <div className="p-12 text-center rounded-2xl bg-white border border-gold-500/20 text-xs text-neutral-500">
-            <Package className="w-8 h-8 mx-auto text-neutral-400 mb-2" />
-            No new arrivals registered yet.
-          </div>
-        ) : (
-          <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {latest.map((product) => (
               <StaggerItem key={product.id}>
                 <ProductCard product={product} />
               </StaggerItem>

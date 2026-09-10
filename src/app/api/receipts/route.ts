@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     }
 
     if (!user) {
-      const email = client.email || `walkin-${Date.now()}@danicagold.local`;
+      const email = client.email || `walkin-${Date.now()}@zdgold.local`;
       user = await prisma.user.findUnique({ where: { email } });
       if (!user) {
         user = await prisma.user.create({

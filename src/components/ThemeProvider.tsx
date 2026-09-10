@@ -16,8 +16,8 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
-const THEME_STORAGE_KEY = 'danica_theme_config_v2';
-const THEME_SYNC_EVENT = 'danica_theme_changed';
+const THEME_STORAGE_KEY = 'zd_theme_config_v3';
+const THEME_SYNC_EVENT = 'zd_theme_changed';
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<ThemeConfig>(DEFAULT_THEME);
@@ -28,10 +28,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const applyCssToDom = useCallback((themeToApply: ThemeConfig) => {
     if (typeof document === 'undefined') return;
 
-    let styleEl = document.getElementById('danica-dynamic-theme-vars') as HTMLStyleElement | null;
+    let styleEl = document.getElementById('zd-dynamic-theme-vars') as HTMLStyleElement | null;
     if (!styleEl) {
       styleEl = document.createElement('style');
-      styleEl.id = 'danica-dynamic-theme-vars';
+      styleEl.id = 'zd-dynamic-theme-vars';
       document.head.appendChild(styleEl);
     }
     styleEl.textContent = generateCssVariables(themeToApply);
@@ -41,23 +41,31 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const applyBrandToDom = useCallback((brand: { companyName?: string; tagline?: string; logoUrl?: string }) => {
     if (typeof document === 'undefined') return;
 
-    if (brand.companyName) {
-      const titleText = brand.tagline ? `${brand.companyName} | ${brand.tagline}` : brand.companyName;
+    const rawName = brand.companyName || 'ZD GOLD';
+    const cleanName = rawName.includes('DANICA') ? 'ZD GOLD' : rawName;
+    let cleanTag = brand.tagline || 'Fine Gold Jewelry & 0% Interest Layaway';
+    if (
+      cleanTag.includes('Haute') ||
+      cleanTag.includes('Certified Fine Gold House') ||
+      cleanTag.includes('Vault') ||
+      cleanTag.includes('Direct Fine Gold')
+    ) {
+      cleanTag = 'Fine Gold Jewelry & 0% Interest Layaway';
+    }
+
+    if (cleanName) {
+      const titleText = cleanTag ? `${cleanName} | ${cleanTag}` : cleanName;
       document.title = titleText;
     }
 
     if (brand.logoUrl) {
-      const iconLinks = document.querySelectorAll<HTMLLinkElement>("link[rel*='icon']");
-      if (iconLinks.length > 0) {
-        iconLinks.forEach((link) => {
-          link.href = brand.logoUrl!;
-        });
-      } else {
-        const link = document.createElement('link');
-        link.rel = 'icon';
-        link.href = brand.logoUrl;
-        document.head.appendChild(link);
+      let favicon = document.querySelector("link[rel*='icon']") as HTMLLinkElement | null;
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.rel = 'shortcut icon';
+        document.head.appendChild(favicon);
       }
+      favicon.href = brand.logoUrl;
     }
   }, []);
 
@@ -156,6 +164,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Initial load
   useEffect(() => {
     try {
+      localStorage.removeItem('danica_theme_config_v2');
+      localStorage.removeItem('danica_gold_settings_v2');
+
       const cached = localStorage.getItem(THEME_STORAGE_KEY);
       if (cached) {
         const parsed = JSON.parse(cached);
@@ -169,10 +180,12 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     // Load initial brand settings
     try {
-      const storedSettings = localStorage.getItem('danica_gold_settings_v2');
+      const storedSettings = localStorage.getItem('zd_gold_settings_v3');
       if (storedSettings) {
         const parsed = JSON.parse(storedSettings);
         applyBrandToDom(parsed);
+      } else {
+        applyBrandToDom({ companyName: 'ZD GOLD', tagline: 'Fine Gold Jewelry & 0% Interest Layaway' });
       }
     } catch (e) {}
 
@@ -183,9 +196,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.settings) {
-          applyBrandToDom(data.settings);
+          const cleanSettings = {
+            ...data.settings,
+            companyName: data.settings.companyName?.includes('DANICA') ? 'ZD GOLD' : (data.settings.companyName || 'ZD GOLD'),
+          };
+          applyBrandToDom(cleanSettings);
           try {
-            localStorage.setItem('danica_gold_settings_v2', JSON.stringify(data.settings));
+            localStorage.setItem('zd_gold_settings_v3', JSON.stringify(cleanSettings));
           } catch (e) {}
         }
       })
@@ -205,10 +222,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     };
 
     window.addEventListener(THEME_SYNC_EVENT, handleSync);
-    window.addEventListener('danica_settings_changed', handleBrandSync);
+    window.addEventListener('zd_settings_changed', handleBrandSync);
     return () => {
       window.removeEventListener(THEME_SYNC_EVENT, handleSync);
-      window.removeEventListener('danica_settings_changed', handleBrandSync);
+      window.removeEventListener('zd_settings_changed', handleBrandSync);
     };
   }, [applyCssToDom, applyBrandToDom, fetchServerTheme]);
 

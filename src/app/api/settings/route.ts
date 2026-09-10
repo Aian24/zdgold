@@ -11,15 +11,31 @@ export async function GET() {
       settings = await prisma.siteSettings.create({
         data: {
           id: 'default_settings',
-          companyName: 'DANICA GOLD PHILIPPINES',
-          tagline: 'Haute Joaillerie & Certified Fine Gold House',
-          logoUrl: '/images/logo.png',
-          phone: '+63 (02) 8888-GOLD / +63 917 123 4567',
-          email: 'inquiries@danicagold.ph',
-          address: 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
-          currencySymbol: '₱',
+          companyName: 'ZD GOLD',
+          tagline: 'Fine Gold Jewelry & 0% Interest Layaway',
+          logoUrl: '',
+          phone: '+63 (02) 8888-GOLD',
+          email: 'inquiries@zdgold.ph',
+          address: 'Metro Manila, Philippines',
+          currencySymbol: '$',
           goldAccentColor: '#D4AF37',
           themeConfig: JSON.stringify({ maxCartQuantityPerItem: 50, maxCartTotalItems: 100 }),
+        },
+      });
+    } else if (
+      settings.companyName?.includes('DANICA') ||
+      settings.tagline?.includes('Haute') ||
+      settings.tagline?.includes('Certified Fine Gold House') ||
+      settings.tagline?.includes('Vault') ||
+      settings.tagline?.includes('Direct Fine Gold')
+    ) {
+      // Auto-migrate legacy DB record to ZD GOLD
+      settings = await prisma.siteSettings.update({
+        where: { id: 'default_settings' },
+        data: {
+          companyName: 'ZD GOLD',
+          tagline: 'Fine Gold Jewelry & 0% Interest Layaway',
+          email: 'inquiries@zdgold.ph',
         },
       });
     }
@@ -31,11 +47,24 @@ export async function GET() {
       } catch {}
     }
 
+    const companyName = settings.companyName?.includes('DANICA') ? 'ZD GOLD' : (settings.companyName || 'ZD GOLD');
+    let tagline = settings.tagline || 'Fine Gold Jewelry & 0% Interest Layaway';
+    if (
+      tagline.includes('Haute') ||
+      tagline.includes('Certified Fine Gold House') ||
+      tagline.includes('Vault') ||
+      tagline.includes('Direct Fine Gold')
+    ) {
+      tagline = 'Fine Gold Jewelry & 0% Interest Layaway';
+    }
+
     return NextResponse.json({
       success: true,
       settings: {
         ...settings,
-        logoUrl: settings.logoUrl || '/images/logo.png',
+        companyName,
+        tagline,
+        logoUrl: settings.logoUrl || '',
         maxCartQuantityPerItem: themeConfigObj.maxCartQuantityPerItem ?? 50,
         maxCartTotalItems: themeConfigObj.maxCartTotalItems ?? 100,
       },
@@ -46,13 +75,13 @@ export async function GET() {
       {
         success: true,
         settings: {
-          companyName: 'DANICA GOLD PHILIPPINES',
-          tagline: 'Haute Joaillerie & Certified Fine Gold House',
-          logoUrl: '/images/logo.png',
-          phone: '+63 (02) 8888-GOLD / +63 917 123 4567',
-          email: 'inquiries@danicagold.ph',
-          address: 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
-          currencySymbol: '₱',
+          companyName: 'ZD GOLD',
+          tagline: 'Fine Gold Jewelry & 0% Interest Layaway',
+          logoUrl: '',
+          phone: '+63 (02) 8888-GOLD',
+          email: 'inquiries@zdgold.ph',
+          address: 'Metro Manila, Philippines',
+          currencySymbol: '$',
           goldAccentColor: '#D4AF37',
           maxCartQuantityPerItem: 50,
           maxCartTotalItems: 100,
@@ -110,25 +139,25 @@ export async function POST(request: Request) {
     const updated = await prisma.siteSettings.upsert({
       where: { id: 'default_settings' },
       update: {
-        companyName: companyName || 'DANICA GOLD PHILIPPINES',
-        tagline: tagline || 'Haute Joaillerie & Certified Fine Gold House',
+        companyName: companyName || 'ZD GOLD',
+        tagline: tagline || 'Fine Gold Jewelry & 0% Interest Layaway',
         logoUrl: logoUrl !== undefined ? logoUrl : '',
         phone: phone || '+63 (02) 8888-GOLD',
-        email: email || 'inquiries@danicagold.ph',
-        address: address || 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
-        currencySymbol: currencySymbol || '₱',
+        email: email || 'inquiries@zdgold.ph',
+        address: address || 'Metro Manila, Philippines',
+        currencySymbol: currencySymbol || '$',
         goldAccentColor: goldAccentColor || '#D4AF37',
         themeConfig: themeConfigStr,
       },
       create: {
         id: 'default_settings',
-        companyName: companyName || 'DANICA GOLD PHILIPPINES',
-        tagline: tagline || 'Haute Joaillerie & Certified Fine Gold House',
+        companyName: companyName || 'ZD GOLD',
+        tagline: tagline || 'Fine Gold Jewelry & 0% Interest Layaway',
         logoUrl: logoUrl || '',
         phone: phone || '+63 (02) 8888-GOLD',
-        email: email || 'inquiries@danicagold.ph',
-        address: address || 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
-        currencySymbol: currencySymbol || '₱',
+        email: email || 'inquiries@zdgold.ph',
+        address: address || 'Metro Manila, Philippines',
+        currencySymbol: currencySymbol || '$',
         goldAccentColor: goldAccentColor || '#D4AF37',
         themeConfig: themeConfigStr,
       },

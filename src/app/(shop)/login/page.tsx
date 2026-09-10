@@ -431,7 +431,7 @@ export default function LoginPage() {
 
           <div className="p-3.5 rounded-xl bg-gold-500/10 border border-gold-500/25 text-xs text-neutral-700 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-gold-600 flex-shrink-0" />
-            <span>0% interest layaways, hallmarked jewelry guarantees, and instant price locks.</span>
+            <span>0% interest layaways, authentic gold guarantees, and instant price locks.</span>
           </div>
 
           <Button

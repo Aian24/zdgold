@@ -85,7 +85,7 @@ export async function GET(request: Request) {
       return NextResponse.redirect(new URL('/login?error=Failed+to+fetch+Facebook+user+profile', request.url));
     }
 
-    const email = (profile.email || `fb_${profile.id}@danicagold.ph`).toLowerCase().trim();
+    const email = (profile.email || `fb_${profile.id}@zdgold.ph`).toLowerCase().trim();
     const name = profile.name || 'Facebook Customer';
     const avatar =
       profile.picture?.data?.url ||

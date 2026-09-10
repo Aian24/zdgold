@@ -113,7 +113,7 @@ export interface ThemePreset {
 export const THEME_PRESETS: ThemePreset[] = [
   {
     id: 'royal-gold',
-    name: 'Danica Royal Gold',
+    name: 'ZD Royal Gold',
     description: 'Signature warm ivory, 24K radiant gold accents, and haute couture serif headings.',
     badge: 'Signature Default',
     previewColors: ['#FCFCF9', '#D4AF37', '#171717', '#FAF8F2'],

@@ -8,7 +8,7 @@ export async function POST(request: Request) {
 
     // 1. Social Login (Google, Facebook, Apple)
     if (action === 'social_login') {
-      const userEmail = (profile?.email || `${provider}_user_${Date.now()}@danicagold.ph`).toLowerCase().trim();
+      const userEmail = (profile?.email || `${provider}_user_${Date.now()}@zdgold.ph`).toLowerCase().trim();
       const userName = profile?.name || (provider === 'google' ? 'Google Customer' : 'Facebook Customer');
       const userAvatar = profile?.avatar || (provider === 'google'
         ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=400'

@@ -84,11 +84,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Product Details */}
       <div className="p-3.5 flex flex-col flex-grow justify-between space-y-2">
         <div>
-          <div className="flex items-center justify-between text-[10px] text-gold-700 uppercase tracking-wider font-bold mb-1">
-            <span>{product.category}</span>
-            {product.hallmarkCertNumber && (
-              <span className="text-emerald-700 font-mono text-[9px]">
-                Hallmarked
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-wider font-bold mb-1">
+            <span className="text-gold-700">{product.category}</span>
+            {product.stockQuantity > 0 ? (
+              <span className="text-emerald-700 font-mono text-[10px] font-bold">
+                {product.stockQuantity} in stock
+              </span>
+            ) : (
+              <span className="text-rose-600 font-mono text-[10px] font-bold">
+                Out of stock
               </span>
             )}
           </div>

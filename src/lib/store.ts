@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { CartItem, ProductItem, UserProfile } from './types';
 import { showToast } from './swal';
 
-const CART_STORAGE_KEY = 'danica_gold_cart_v2';
-const USER_STORAGE_KEY = 'danica_gold_user_v2';
-const SETTINGS_STORAGE_KEY = 'danica_gold_settings_v2';
+const CART_STORAGE_KEY = 'zd_gold_cart_v3';
+const USER_STORAGE_KEY = 'zd_gold_user_v3';
+const SETTINGS_STORAGE_KEY = 'zd_gold_settings_v3';
 
 export interface SiteBrandSettings {
   companyName: string;
@@ -22,13 +22,13 @@ export interface SiteBrandSettings {
 }
 
 export const DEFAULT_BRAND_SETTINGS: SiteBrandSettings = {
-  companyName: 'DANICA GOLD PHILIPPINES',
-  tagline: 'Haute Joaillerie & Certified Fine Gold House',
-  logoUrl: '/images/logo.png',
-  phone: '+63 (02) 8888-GOLD / +63 917 123 4567',
-  email: 'inquiries@danicagold.ph',
-  address: 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
-  currencySymbol: '₱',
+  companyName: 'ZD GOLD',
+  tagline: 'Fine Gold Jewelry & 0% Interest Layaway',
+  logoUrl: '',
+  phone: '+63 (02) 8888-GOLD',
+  email: 'inquiries@zdgold.ph',
+  address: 'Metro Manila, Philippines',
+  currencySymbol: '$',
   goldAccentColor: '#D4AF37',
   maxCartQuantityPerItem: 50,
   maxCartTotalItems: 100,
@@ -38,7 +38,7 @@ export const DEFAULT_BRAND_SETTINGS: SiteBrandSettings = {
 export const DEMO_CUSTOMER: UserProfile = {
   id: 'cuid-customer-sophia',
   name: 'Sophia Laurent',
-  email: 'sophia.laurent@danicagold.ph',
+  email: 'sophia.laurent@zdgold.ph',
   role: 'CUSTOMER',
   phone: '+63 917 234 5678',
   address: 'Ayala Alabang Village, Muntinlupa City',
@@ -64,15 +64,38 @@ export function useSettings() {
   const [settings, setSettings] = useState<SiteBrandSettings>(DEFAULT_BRAND_SETTINGS);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  const cleanBrandSettings = (raw: any): SiteBrandSettings => {
+    let name = raw?.companyName || 'ZD GOLD';
+    if (name.includes('DANICA')) name = 'ZD GOLD';
+
+    let tag = raw?.tagline || 'Fine Gold Jewelry & 0% Interest Layaway';
+    if (
+      tag.includes('Haute') ||
+      tag.includes('Certified Fine Gold House') ||
+      tag.includes('Vault') ||
+      tag.includes('Direct Fine Gold')
+    ) {
+      tag = 'Fine Gold Jewelry & 0% Interest Layaway';
+    }
+
+    return {
+      ...DEFAULT_BRAND_SETTINGS,
+      ...raw,
+      companyName: name,
+      tagline: tag,
+    };
+  };
+
   const fetchSettings = async () => {
     try {
       const res = await fetch('/api/settings');
       const data = await res.json();
       if (data.success && data.settings) {
-        setSettings(data.settings);
-        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(data.settings));
+        const cleaned = cleanBrandSettings(data.settings);
+        setSettings(cleaned);
+        localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(cleaned));
         if (typeof window !== 'undefined') {
-          window.dispatchEvent(new CustomEvent('danica_settings_changed', { detail: data.settings }));
+          window.dispatchEvent(new CustomEvent('zd_settings_changed', { detail: cleaned }));
         }
       }
     } catch (e) {
@@ -84,9 +107,15 @@ export function useSettings() {
 
   useEffect(() => {
     try {
+      localStorage.removeItem('danica_gold_settings_v2');
+      localStorage.removeItem('danica_gold_settings');
+
       const stored = localStorage.getItem(SETTINGS_STORAGE_KEY);
       if (stored) {
-        setSettings(JSON.parse(stored));
+        const parsed = JSON.parse(stored);
+        setSettings(cleanBrandSettings(parsed));
+      } else {
+        setSettings(DEFAULT_BRAND_SETTINGS);
       }
     } catch (e) {}
     fetchSettings();
@@ -98,8 +127,8 @@ export function useSettings() {
     };
 
     if (typeof window !== 'undefined') {
-      window.addEventListener('danica_settings_changed', handleSync);
-      return () => window.removeEventListener('danica_settings_changed', handleSync);
+      window.addEventListener('zd_settings_changed', handleSync);
+      return () => window.removeEventListener('zd_settings_changed', handleSync);
     }
   }, []);
 
@@ -109,7 +138,7 @@ export function useSettings() {
     try {
       localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(merged));
       if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('danica_settings_changed', { detail: merged }));
+        window.dispatchEvent(new CustomEvent('zd_settings_changed', { detail: merged }));
       }
     } catch (e) {}
   };
@@ -341,7 +370,7 @@ export function useAuth() {
         const stored = localStorage.getItem(USER_STORAGE_KEY);
         if (stored) {
           const parsed = JSON.parse(stored);
-          if (parsed?.id === 'cuid-customer-sophia' || parsed?.email === 'sophia.laurent@danicagold.ph') {
+          if (parsed?.id === 'cuid-customer-sophia' || parsed?.email?.includes('sophia.laurent')) {
             localStorage.removeItem(USER_STORAGE_KEY);
             setUser(null);
           } else {

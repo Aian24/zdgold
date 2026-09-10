@@ -18,8 +18,8 @@ export const Footer: React.FC = () => {
               <Award className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-neutral-900 uppercase tracking-wide">100% Certified Gold</h4>
-              <p className="text-xs text-neutral-500 mt-1">Official purity hallmarks & assay certificate included.</p>
+              <h4 className="text-sm font-bold text-neutral-900 uppercase tracking-wide">100% Solid Gold</h4>
+              <p className="text-xs text-neutral-500 mt-1">Authentic 14K–24K solid gold with guaranteed purity verification.</p>
             </div>
           </div>
 
@@ -119,11 +119,11 @@ export const Footer: React.FC = () => {
           <div>
             <h5 className="text-xs font-bold text-neutral-900 uppercase tracking-widest mb-4">Security & Legal</h5>
             <ul className="space-y-2 text-xs text-neutral-500">
-              <li>Hallmark Assay Certified</li>
+              <li>Authentic Gold Purity Guarantee</li>
               <li>Anti-Money Laundering Compliant</li>
               <li>Sequential Invoicing</li>
               <li>Terms of Layaway</li>
-              <li>Privacy & Vault Security</li>
+              <li>Privacy & Transaction Security</li>
             </ul>
           </div>
         </div>
