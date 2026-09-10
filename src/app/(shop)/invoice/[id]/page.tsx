@@ -140,7 +140,7 @@ export default function InvoicePage({
       {/* REAL-LIFE AUTHENTIC CLEAN RECEIPT SLIP (FITS EXACTLY 1 SINGLE FULL HEIGHT PAGE) */}
       <div
         id="printable-receipt"
-        className="bg-white border-2 border-black rounded-xl p-5 sm:p-6 space-y-3 text-black font-mono shadow-md w-full max-w-xl mx-auto print:max-w-none print:w-full print:p-6 print:space-y-4 print:border-2 print:border-black print:rounded-none print:shadow-none print:flex print:flex-col print:justify-between print:min-h-[92vh]"
+        className="bg-white border-2 border-black rounded-xl p-5 sm:p-6 space-y-3 text-black font-mono shadow-md w-full max-w-xl mx-auto print:max-w-none print:w-full print:p-4 print:space-y-4 print:border-0 print:border-none print:rounded-none print:shadow-none print:flex print:flex-col print:justify-between print:min-h-[92vh]"
       >
         {/* Top & Content Section */}
         <div className="space-y-3 print:space-y-4">

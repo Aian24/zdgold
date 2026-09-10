@@ -122,6 +122,8 @@ export function useSettings() {
   };
 }
 
+export const CART_UPDATED_EVENT = 'dg_cart_updated';
+
 export function useCart() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -131,16 +133,48 @@ export function useCart() {
   const maxTotalCartItems = settings.maxCartTotalItems || 100;
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(CART_STORAGE_KEY);
-      if (stored) {
-        setItems(JSON.parse(stored));
+    const loadFromStorage = () => {
+      try {
+        const stored = localStorage.getItem(CART_STORAGE_KEY);
+        if (stored) {
+          setItems(JSON.parse(stored));
+        } else {
+          setItems([]);
+        }
+      } catch (e) {
+        console.error('Failed to load cart from storage', e);
+      } finally {
+        setIsLoaded(true);
       }
-    } catch (e) {
-      console.error('Failed to load cart from storage', e);
-    } finally {
-      setIsLoaded(true);
+    };
+
+    loadFromStorage();
+
+    const handleCartSync = (e: any) => {
+      if (e?.detail) {
+        setItems(e.detail);
+      } else {
+        loadFromStorage();
+      }
+    };
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === CART_STORAGE_KEY) {
+        loadFromStorage();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener(CART_UPDATED_EVENT, handleCartSync);
+      window.addEventListener('storage', handleStorageChange);
     }
+
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener(CART_UPDATED_EVENT, handleCartSync);
+        window.removeEventListener('storage', handleStorageChange);
+      }
+    };
   }, []);
 
   const saveItems = (newItems: CartItem[]) => {
@@ -149,6 +183,9 @@ export function useCart() {
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(newItems));
     } catch (e) {
       console.error('Failed to save cart to storage', e);
+    }
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent(CART_UPDATED_EVENT, { detail: newItems }));
     }
   };
 

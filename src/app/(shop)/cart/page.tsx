@@ -13,13 +13,14 @@ import {
   Scale,
   Lock,
 } from 'lucide-react';
-import { useCart } from '@/lib/store';
+import { useCart, useAuth } from '@/lib/store';
 import { formatCurrency, formatGrams } from '@/lib/gold-pricing';
 import { Button } from '@/components/ui/Button';
 import { FadeInUp } from '@/components/animations/Motion';
 
 export default function CartPage() {
   const { items, itemCount, subtotal, totalGrams, totalCraftFee, maxQtyPerItem, maxTotalCartItems, updateQuantity, removeItem, clearCart, isLoaded } = useCart();
+  const { user, openAuthModal } = useAuth();
   const [checkoutMode, setCheckoutMode] = useState<'CASH' | 'LAYAWAY'>('LAYAWAY');
 
   if (!isLoaded) {
@@ -236,19 +237,50 @@ export default function CartPage() {
             </div>
           </div>
 
+          {/* Unauthenticated notice in cart */}
+          {!user && (
+            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-[11px] flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Lock className="w-3.5 h-3.5 text-amber-700 flex-shrink-0" />
+                <span>Account required to lock 0% layaway rates.</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => openAuthModal('signin')}
+                className="font-bold underline hover:text-amber-950 cursor-pointer whitespace-nowrap"
+              >
+                Sign In
+              </button>
+            </div>
+          )}
+
           {/* CTA Proceed Button */}
-          <Link href={`/checkout?mode=${checkoutMode}`}>
+          {!user ? (
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
               <Button
                 variant="primary"
                 size="lg"
-                className="w-full text-xs font-bold uppercase tracking-wider mt-2 shadow-md"
-                rightIcon={<ArrowRight className="w-4 h-4" />}
+                onClick={() => openAuthModal('signin')}
+                className="w-full text-xs font-bold uppercase tracking-wider mt-2 shadow-md bg-amber-600 hover:bg-amber-700 border-amber-600"
+                rightIcon={<Lock className="w-4 h-4" />}
               >
-                {checkoutMode === 'LAYAWAY' ? 'Configure Layaway Contract' : 'Proceed to Cash Checkout'}
+                Sign In to Checkout ({itemCount} {itemCount === 1 ? 'Piece' : 'Pieces'})
               </Button>
             </motion.div>
-          </Link>
+          ) : (
+            <Link href={`/checkout?mode=${checkoutMode}`}>
+              <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="w-full text-xs font-bold uppercase tracking-wider mt-2 shadow-md"
+                  rightIcon={<ArrowRight className="w-4 h-4" />}
+                >
+                  {checkoutMode === 'LAYAWAY' ? 'Configure Layaway Contract' : 'Proceed to Cash Checkout'}
+                </Button>
+              </motion.div>
+            </Link>
+          )}
         </FadeInUp>
       </div>
     </div>

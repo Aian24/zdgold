@@ -459,11 +459,12 @@
     flex-direction: column !important;
     justify-content: space-between !important;
     margin: 0 auto !important;
-    padding: 18px 24px !important;
-    border: 2px solid #000000 !important;
+    padding: 16px 20px !important;
+    border: none !important;
     border-radius: 0px !important;
     background: #FFFFFF !important;
     box-shadow: none !important;
+    outline: none !important;
     page-break-inside: avoid !important;
     page-break-after: avoid !important;
     page-break-before: avoid !important;

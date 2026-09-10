@@ -734,7 +734,7 @@ export default function AdminReceiptsPage() {
             {/* REAL-LIFE AUTHENTIC CLEAN RECEIPT SLIP */}
             <div
               id="printable-receipt"
-              className="bg-white border border-neutral-300 rounded-xl p-6 sm:p-8 space-y-5 text-neutral-900 font-mono shadow-sm w-full max-w-[380px] mx-auto print:w-[380px] print:max-w-[380px] print:min-w-[380px] print:mx-auto print:p-6 print:border print:border-neutral-300 print:rounded-lg print:shadow-none"
+              className="bg-white border border-neutral-300 rounded-xl p-6 sm:p-8 space-y-5 text-neutral-900 font-mono shadow-sm w-full max-w-[380px] mx-auto print:w-[380px] print:max-w-[380px] print:min-w-[380px] print:mx-auto print:p-4 print:border-0 print:border-none print:rounded-none print:shadow-none"
             >
               {/* Receipt Header */}
               <div className="text-center space-y-1 pb-3 border-b border-dashed border-neutral-300">

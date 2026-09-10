@@ -59,12 +59,36 @@ function CheckoutContent() {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderCompleteData, setOrderCompleteData] = useState<any>(null);
+  const [loginRequiredError, setLoginRequiredError] = useState<string | null>(null);
+
+  // Auto-scroll to the top on phones and desktop whenever an order is successfully completed
+  useEffect(() => {
+    if (orderCompleteData && typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      const timer = setTimeout(() => {
+        window.scrollTo(0, 0);
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [orderCompleteData]);
 
   const plan = calculateLayawayPlan(subtotal, downPercent, termMonths);
   const totalDueToday = checkoutMode === 'LAYAWAY' ? plan.downPaymentAmount : subtotal;
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginRequiredError(null);
+
+    // Require logged in user before placing order
+    if (!user) {
+      setLoginRequiredError('Please sign in or create an account to finalize your order and secure your jewelry guarantee.');
+      openAuthModal('signin');
+      if (typeof window !== 'undefined') {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      }
+      return;
+    }
+
     if (items.length === 0) return;
 
     setIsSubmitting(true);
@@ -94,6 +118,10 @@ function CheckoutContent() {
 
       const data = await res.json();
       if (data.success) {
+        if (typeof window !== 'undefined') {
+          window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+        }
+
         try {
           confetti({
             particleCount: 120,
@@ -210,17 +238,57 @@ function CheckoutContent() {
           </p>
         </div>
 
-        {!user && (
+        {!user ? (
           <button
             type="button"
             onClick={() => openAuthModal('signin')}
-            className="text-xs font-bold text-gold-700 hover:text-gold-900 bg-gold-500/15 border border-gold-500/30 px-3 py-1.5 rounded-xl flex items-center gap-1.5 cursor-pointer shadow-2xs"
+            className="text-xs font-bold text-gold-800 hover:text-gold-950 bg-amber-50 border border-amber-300 px-3.5 py-2 rounded-xl flex items-center gap-2 cursor-pointer shadow-2xs transition-all hover:bg-amber-100"
           >
-            <UserIcon className="w-3.5 h-3.5 text-gold-600" />
-            <span>Sign In with Google / Email</span>
+            <UserIcon className="w-4 h-4 text-amber-600" />
+            <span>Sign In to Your Account</span>
           </button>
+        ) : (
+          <div className="text-xs font-medium text-emerald-800 bg-emerald-50 border border-emerald-300 px-3.5 py-1.5 rounded-xl flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            <span>Signed in as <b>{user.name || user.email}</b></span>
+          </div>
         )}
       </div>
+
+      {/* Login Required Notice */}
+      {!user && (
+        <div className="p-4 rounded-2xl bg-amber-50/90 border border-amber-300/80 text-amber-900 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center flex-shrink-0 text-amber-700">
+              <Lock className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-amber-950">
+                Please Sign In to Complete Your Order
+              </p>
+              <p className="text-[11px] text-amber-800">
+                An account is required to lock gold spot rates, generate official receipts, and access order tracking.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="primary"
+            size="sm"
+            onClick={() => openAuthModal('signin')}
+            className="text-xs font-bold uppercase tracking-wider whitespace-nowrap"
+          >
+            Sign In / Register
+          </Button>
+        </div>
+      )}
+
+      {loginRequiredError && (
+        <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-300 text-rose-800 text-xs font-bold flex items-center gap-2">
+          <Lock className="w-4 h-4 text-rose-600 flex-shrink-0" />
+          <span>{loginRequiredError}</span>
+        </div>
+      )}
 
       <form onSubmit={handleSubmitOrder}>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
@@ -492,18 +560,31 @@ function CheckoutContent() {
               </span>
             </div>
 
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              isLoading={isSubmitting}
-              className="w-full text-xs font-bold uppercase tracking-wider"
-              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
-            >
-              {checkoutMode === 'LAYAWAY'
-                ? `Lock Price & Pay Deposit (${formatCurrency(totalDueToday)})`
-                : `Authorize Full Cash Payment (${formatCurrency(totalDueToday)})`}
-            </Button>
+            {!user ? (
+              <Button
+                type="button"
+                variant="primary"
+                size="md"
+                onClick={() => openAuthModal('signin')}
+                className="w-full text-xs font-bold uppercase tracking-wider bg-amber-600 hover:bg-amber-700 border-amber-600"
+                rightIcon={<Lock className="w-3.5 h-3.5" />}
+              >
+                Sign In to Place Order ({formatCurrency(totalDueToday)})
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                isLoading={isSubmitting}
+                className="w-full text-xs font-bold uppercase tracking-wider"
+                rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+              >
+                {checkoutMode === 'LAYAWAY'
+                  ? `Lock Price & Pay Deposit (${formatCurrency(totalDueToday)})`
+                  : `Authorize Full Cash Payment (${formatCurrency(totalDueToday)})`}
+              </Button>
+            )}
           </div>
         </div>
       </form>
