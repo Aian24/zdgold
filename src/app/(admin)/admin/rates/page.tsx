@@ -87,7 +87,7 @@ export default function AdminRatesPage() {
   ];
 
   return (
-    <div className="max-w-4xl space-y-8 overflow-hidden">
+    <div className="w-full space-y-6 overflow-hidden">
       <FadeInUp>
         <span className="text-xs font-bold text-gold-700 uppercase tracking-widest block mb-1">
           Market Pricing

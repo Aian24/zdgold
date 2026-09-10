@@ -104,7 +104,7 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="w-full space-y-6">
       <div>
         <span className="text-xs font-bold text-gold-700 uppercase tracking-widest block mb-1">
           Store Configuration
@@ -118,7 +118,7 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Live Brand Preview Card */}
-      <div className="rounded-2xl bg-white border border-gold-500/30 p-6 shadow-sm space-y-4">
+      <div className="w-full rounded-2xl bg-white border border-gold-500/30 p-6 shadow-sm space-y-4">
         <span className="text-xs font-bold text-neutral-400 uppercase tracking-wider block">
           Live Storefront Brand Preview:
         </span>
@@ -149,13 +149,13 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Settings Form */}
-      <form onSubmit={handleSaveSettings} className="rounded-2xl bg-white border border-gold-500/30 p-6 md:p-8 space-y-6 shadow-sm">
+      <form onSubmit={handleSaveSettings} className="w-full rounded-2xl bg-white border border-gold-500/30 p-6 md:p-8 space-y-6 shadow-sm">
         <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-900 pb-3 border-b border-neutral-100 flex items-center gap-2">
           <Building2 className="w-4 h-4 text-gold-600" />
           Company & Logo Customization
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Input
             label="Company / Brand Name"
             placeholder="e.g. ZD GOLD"
@@ -257,7 +257,7 @@ export default function AdminSettingsPage() {
           Contact & Legal Headquarters
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Input
             label="Customer Support Hotline"
             value={formData.phone}
@@ -271,14 +271,14 @@ export default function AdminSettingsPage() {
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
             leftIcon={<Mail className="w-4 h-4" />}
           />
-        </div>
 
-        <Input
-          label="Vault & Flagship Boutique Address"
-          value={formData.address}
-          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-          leftIcon={<MapPin className="w-4 h-4" />}
-        />
+          <Input
+            label="Vault & Flagship Boutique Address"
+            value={formData.address}
+            onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+            leftIcon={<MapPin className="w-4 h-4" />}
+          />
+        </div>
 
         {/* SHOPPING CART & ORDER LIMITATION SETTINGS */}
         <div className="space-y-4 pt-4 border-t border-neutral-100">
