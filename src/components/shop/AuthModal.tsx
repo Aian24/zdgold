@@ -51,6 +51,7 @@ export const AuthModal: React.FC = () => {
   // Admin form state
   const [adminUsername, setAdminUsername] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -491,14 +492,23 @@ export const AuthModal: React.FC = () => {
                 required
               />
 
-              <Input
-                label="Master Password"
-                type="password"
-                placeholder="••••••••"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                required
-              />
+              <div className="relative">
+                <Input
+                  label="Master Password"
+                  type={showAdminPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAdminPassword(!showAdminPassword)}
+                  className="absolute right-3 top-7 text-neutral-400 hover:text-neutral-700 cursor-pointer"
+                >
+                  {showAdminPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                </button>
+              </div>
 
               <motion.div whileTap={{ scale: 0.98 }}>
                 <Button

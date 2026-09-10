@@ -49,12 +49,12 @@ export const DEMO_CUSTOMER: UserProfile = {
 
 // Default Demo Admin
 export const DEMO_ADMIN: UserProfile = {
-  id: 'cuid-admin-danica',
-  name: 'Danica Executive Admin',
-  email: 'admin@danicagold.com',
+  id: 'cuid-admin-zdgold',
+  name: 'ZD Gold Administrator',
+  email: 'admin@zdgold.ph',
   role: 'ADMIN',
   phone: '+63 (02) 8888-GOLD',
-  address: 'BGC Taguig & Ongpin Flagship Vault',
+  address: 'Metro Manila Flagship Vault',
   city: 'Metro Manila',
   zipCode: '1634',
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',

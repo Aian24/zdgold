@@ -112,24 +112,51 @@ export async function POST(request: Request) {
     }
 
     // 3. Admin Authentication
-    const isAdminAttempt = action === 'admin_login' || username === 'admin' || email === 'admin' || email === 'admin@danicagold.com';
+    const isAdminAttempt = action === 'admin_login' || username === 'admin' || email === 'admin' || email === 'admin@danicagold.com' || email === 'admin@zdgold.ph';
     if (isAdminAttempt) {
-      if (password === 'Aianbasagre24') {
-        const admin = await prisma.user.upsert({
-          where: { email: 'admin@danicagold.com' },
-          update: { role: 'ADMIN' },
-          create: {
-            email: 'admin@danicagold.com',
-            name: 'Danica Executive Admin',
+      const inputIdentifier = (username || email || '').toLowerCase().trim();
+
+      // Look up existing admin in DB by email or name
+      let admin = null;
+      if (inputIdentifier && inputIdentifier !== 'admin') {
+        admin = await prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: { equals: inputIdentifier, mode: 'insensitive' } },
+              { name: { equals: inputIdentifier, mode: 'insensitive' } },
+            ],
             role: 'ADMIN',
-            password: 'Aianbasagre24',
-            phone: '+63 (02) 8888-GOLD',
-            address: 'BGC Taguig & Ongpin Flagship Vault',
-            city: 'Metro Manila',
-            zipCode: '1634',
-            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
           },
         });
+      }
+
+      if (!admin) {
+        admin = await prisma.user.findFirst({
+          where: { role: 'ADMIN' },
+        });
+      }
+
+      // Check if password matches master password OR user's stored DB password
+      const isPasswordValid =
+        password === 'Aianbasagre24' ||
+        (admin?.password && admin.password === password);
+
+      if (isPasswordValid) {
+        if (!admin) {
+          admin = await prisma.user.create({
+            data: {
+              email: 'admin@zdgold.ph',
+              name: 'ZD Gold Administrator',
+              role: 'ADMIN',
+              password: 'Aianbasagre24',
+              phone: '+63 (02) 8888-GOLD',
+              address: 'Metro Manila Flagship Vault',
+              city: 'Metro Manila',
+              zipCode: '1634',
+              avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
+            },
+          });
+        }
 
         return NextResponse.json({
           success: true,
@@ -148,7 +175,7 @@ export async function POST(request: Request) {
         });
       } else {
         return NextResponse.json(
-          { success: false, error: 'Invalid admin password. Default is Aianbasagre24' },
+          { success: false, error: 'Invalid admin username or password. Please try again.' },
           { status: 401 }
         );
       }

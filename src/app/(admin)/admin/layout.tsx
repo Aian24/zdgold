@@ -17,6 +17,7 @@ import {
   Settings,
   Receipt,
   Palette,
+  LogOut,
 } from 'lucide-react';
 import { useAuth, useSettings } from '@/lib/store';
 import { Button } from '@/components/ui/Button';
@@ -28,7 +29,7 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
-  const { user, isLoaded, openAuthModal } = useAuth();
+  const { user, isLoaded, openAuthModal, logout } = useAuth();
   const { settings } = useSettings();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -253,11 +254,23 @@ export default function AdminLayout({
               <span>View Storefront</span>
             </motion.div>
           </Link>
+
+          {/* Direct Sign Out Button */}
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => logout(true)}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 shadow-2xs"
+          >
+            <LogOut className="w-4 h-4 text-red-600" />
+            <span>Sign Out</span>
+          </motion.button>
+
           <div
             className="px-3.5 py-1 text-[11px] font-medium truncate opacity-75"
             style={{ color: 'var(--theme-sidebar-text, #1A1A1A)' }}
           >
-            Admin: <b>{user?.name || 'Executive Admin'}</b>
+            Admin: <b>{user?.name || 'Administrator'}</b>
           </div>
         </div>
       </aside>
