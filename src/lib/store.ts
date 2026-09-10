@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { CartItem, ProductItem, UserProfile } from './types';
+import { showToast } from './swal';
 
 const CART_STORAGE_KEY = 'danica_gold_cart_v2';
 const USER_STORAGE_KEY = 'danica_gold_user_v2';
@@ -16,6 +17,8 @@ export interface SiteBrandSettings {
   address: string;
   currencySymbol: string;
   goldAccentColor: string;
+  maxCartQuantityPerItem?: number;
+  maxCartTotalItems?: number;
 }
 
 export const DEFAULT_BRAND_SETTINGS: SiteBrandSettings = {
@@ -27,6 +30,8 @@ export const DEFAULT_BRAND_SETTINGS: SiteBrandSettings = {
   address: 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
   currencySymbol: '₱',
   goldAccentColor: '#D4AF37',
+  maxCartQuantityPerItem: 50,
+  maxCartTotalItems: 100,
 };
 
 // Default Demo Customer
@@ -117,12 +122,13 @@ export function useSettings() {
   };
 }
 
-export const MAX_QTY_PER_ITEM = 50;
-export const MAX_TOTAL_CART_ITEMS = 100;
-
 export function useCart() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const { settings } = useSettings();
+
+  const maxQtyPerItem = settings.maxCartQuantityPerItem || 50;
+  const maxTotalCartItems = settings.maxCartTotalItems || 100;
 
   useEffect(() => {
     try {
@@ -156,19 +162,19 @@ export function useCart() {
       const currentItemQty = updated[existingIndex].quantity;
       const targetQty = currentItemQty + quantity;
 
-      // Cap at 50 per item, and cap total cart items at 100
-      const allowedTotalCapacity = MAX_TOTAL_CART_ITEMS - currentTotalItems;
-      const allowedQty = Math.min(targetQty, MAX_QTY_PER_ITEM, currentItemQty + Math.max(0, allowedTotalCapacity));
+      // Cap at configured max per item, and cap total cart items at configured max
+      const allowedTotalCapacity = maxTotalCartItems - currentTotalItems;
+      const allowedQty = Math.min(targetQty, maxQtyPerItem, currentItemQty + Math.max(0, allowedTotalCapacity));
 
       if (allowedQty <= currentItemQty) {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
             new CustomEvent('dg_cart_limit_reached', {
-              detail: { message: `Cart limit reached! Max ${MAX_QTY_PER_ITEM} items per piece, and ${MAX_TOTAL_CART_ITEMS} items total.` },
+              detail: { message: `Cart limit reached! Max ${maxQtyPerItem} items per piece, and ${maxTotalCartItems} items total.` },
             })
           );
         }
-        return { success: false, message: `Cart limit reached (${MAX_QTY_PER_ITEM} max per piece)` };
+        return { success: false, message: `Cart limit reached (${maxQtyPerItem} max per piece)` };
       }
 
       updated[existingIndex] = {
@@ -178,18 +184,18 @@ export function useCart() {
       };
       saveItems(updated);
     } else {
-      const remainingCapacity = Math.max(0, MAX_TOTAL_CART_ITEMS - currentTotalItems);
-      const allowedQty = Math.min(quantity, MAX_QTY_PER_ITEM, remainingCapacity);
+      const remainingCapacity = Math.max(0, maxTotalCartItems - currentTotalItems);
+      const allowedQty = Math.min(quantity, maxQtyPerItem, remainingCapacity);
 
       if (allowedQty <= 0) {
         if (typeof window !== 'undefined') {
           window.dispatchEvent(
             new CustomEvent('dg_cart_limit_reached', {
-              detail: { message: `Cart is full! Maximum limit is ${MAX_TOTAL_CART_ITEMS} pieces.` },
+              detail: { message: `Cart is full! Maximum limit is ${maxTotalCartItems} pieces.` },
             })
           );
         }
-        return { success: false, message: `Cart is full (Max ${MAX_TOTAL_CART_ITEMS} items)` };
+        return { success: false, message: `Cart is full (Max ${maxTotalCartItems} items)` };
       }
 
       const newItem: CartItem = {
@@ -220,7 +226,7 @@ export function useCart() {
       return;
     }
     const otherItemsTotal = items.filter((i) => i.product.id !== productId).reduce((sum, i) => sum + i.quantity, 0);
-    const maxAllowed = Math.min(MAX_QTY_PER_ITEM, Math.max(1, MAX_TOTAL_CART_ITEMS - otherItemsTotal));
+    const maxAllowed = Math.min(maxQtyPerItem, Math.max(1, maxTotalCartItems - otherItemsTotal));
     const finalQty = Math.min(quantity, maxAllowed);
 
     const updated = items.map((item) => {
@@ -260,6 +266,8 @@ export function useCart() {
     totalGrams,
     subtotal,
     totalCraftFee,
+    maxQtyPerItem,
+    maxTotalCartItems,
     addItem,
     removeItem,
     updateQuantity,
@@ -267,8 +275,10 @@ export function useCart() {
   };
 }
 
-// Global Custom Event for Auth Modal control
+// Global Custom Events for Auth Modal & User state synchronization
 const AUTH_MODAL_EVENT = 'dg_auth_modal_toggle';
+export const USER_CHANGED_EVENT = 'dg_user_changed';
+export const USER_LOGOUT_EVENT = 'dg_user_logged_out';
 
 export function openGlobalAuthModal(tab: 'signin' | 'register' | 'admin' = 'signin') {
   if (typeof window !== 'undefined') {
@@ -289,25 +299,29 @@ export function useAuth() {
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'register' | 'admin'>('signin');
 
   useEffect(() => {
-    try {
-      const stored = localStorage.getItem(USER_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed?.id === 'cuid-customer-sophia' || parsed?.email === 'sophia.laurent@danicagold.ph') {
-          localStorage.removeItem(USER_STORAGE_KEY);
-          setUser(null);
+    const loadUserFromStorage = () => {
+      try {
+        const stored = localStorage.getItem(USER_STORAGE_KEY);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed?.id === 'cuid-customer-sophia' || parsed?.email === 'sophia.laurent@danicagold.ph') {
+            localStorage.removeItem(USER_STORAGE_KEY);
+            setUser(null);
+          } else {
+            setUser(parsed);
+          }
         } else {
-          setUser(parsed);
+          setUser(null);
         }
-      } else {
+      } catch (e) {
+        console.error('Failed to load user', e);
         setUser(null);
+      } finally {
+        setIsLoaded(true);
       }
-    } catch (e) {
-      console.error('Failed to load user', e);
-      setUser(null);
-    } finally {
-      setIsLoaded(true);
-    }
+    };
+
+    loadUserFromStorage();
 
     const handleModalEvent = (e: any) => {
       if (e.detail) {
@@ -316,8 +330,33 @@ export function useAuth() {
       }
     };
 
-    window.addEventListener(AUTH_MODAL_EVENT, handleModalEvent);
-    return () => window.removeEventListener(AUTH_MODAL_EVENT, handleModalEvent);
+    const handleUserChanged = (e: any) => {
+      if (e.detail !== undefined) {
+        setUser(e.detail);
+      } else {
+        loadUserFromStorage();
+      }
+    };
+
+    const handleStorageEvent = (e: StorageEvent) => {
+      if (e.key === USER_STORAGE_KEY) {
+        loadUserFromStorage();
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener(AUTH_MODAL_EVENT, handleModalEvent);
+      window.addEventListener(USER_CHANGED_EVENT, handleUserChanged);
+      window.addEventListener(USER_LOGOUT_EVENT, loadUserFromStorage);
+      window.addEventListener('storage', handleStorageEvent);
+
+      return () => {
+        window.removeEventListener(AUTH_MODAL_EVENT, handleModalEvent);
+        window.removeEventListener(USER_CHANGED_EVENT, handleUserChanged);
+        window.removeEventListener(USER_LOGOUT_EVENT, loadUserFromStorage);
+        window.removeEventListener('storage', handleStorageEvent);
+      };
+    }
   }, []);
 
   const openAuthModal = useCallback((tab: 'signin' | 'register' | 'admin' = 'signin') => {
@@ -336,15 +375,24 @@ export function useAuth() {
     setUser(newUser);
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(newUser));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(USER_CHANGED_EVENT, { detail: newUser }));
+      }
     } catch (e) {
       console.error('Failed to save user', e);
     }
   };
 
-  const loginCustom = useCallback((profile: UserProfile) => {
+  const loginCustom = useCallback((profile: UserProfile, notify = true) => {
     setUser(profile);
     try {
       localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(profile));
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(USER_CHANGED_EVENT, { detail: profile }));
+        if (notify) {
+          showToast(`Welcome, ${profile.name.split(' ')[0]}! Signed in successfully.`, 'success');
+        }
+      }
     } catch (e) {
       console.error('Failed to save user', e);
     }
@@ -398,7 +446,7 @@ export function useAuth() {
       });
       const data = await res.json();
       if (data.success && data.user) {
-        loginCustom(data.user);
+        loginCustom(data.user, true);
         closeAuthModal();
         return { success: true, user: data.user };
       }
@@ -417,7 +465,7 @@ export function useAuth() {
       city: targetProfile.city,
       zipCode: targetProfile.zipCode,
     };
-    loginCustom(fallbackUser);
+    loginCustom(fallbackUser, true);
     closeAuthModal();
     return { success: true, user: fallbackUser };
   };
@@ -435,7 +483,7 @@ export function useAuth() {
       });
       const data = await res.json();
       if (data.success && data.user) {
-        loginCustom(data.user);
+        loginCustom(data.user, true);
         closeAuthModal();
         return { success: true, user: data.user, message: data.message };
       } else {
@@ -467,7 +515,7 @@ export function useAuth() {
       });
       const data = await res.json();
       if (data.success && data.user) {
-        loginCustom(data.user);
+        loginCustom(data.user, true);
         closeAuthModal();
         return { success: true, user: data.user, message: data.message };
       } else {
@@ -492,7 +540,7 @@ export function useAuth() {
       });
       const data = await res.json();
       if (data.success && data.user) {
-        loginCustom(data.user);
+        loginCustom(data.user, true);
         closeAuthModal();
         return { success: true, user: data.user, message: data.message };
       } else {
@@ -501,7 +549,7 @@ export function useAuth() {
     } catch (e) {
       console.error('Admin login error', e);
       if (username === 'admin' && password === 'Aianbasagre24') {
-        loginCustom(DEMO_ADMIN);
+        loginCustom(DEMO_ADMIN, true);
         closeAuthModal();
         return { success: true, user: DEMO_ADMIN };
       }
@@ -509,10 +557,29 @@ export function useAuth() {
     }
   };
 
-  const logout = useCallback(() => {
+  const logout = useCallback((redirectHome = false) => {
     setUser(null);
     try {
       localStorage.removeItem(USER_STORAGE_KEY);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent(USER_CHANGED_EVENT, { detail: null }));
+        window.dispatchEvent(new CustomEvent(USER_LOGOUT_EVENT));
+        showToast('Signed out successfully.', 'info');
+
+        const currentPath = window.location.pathname;
+        const isRestrictedPage =
+          currentPath.startsWith('/admin') ||
+          currentPath === '/profile' ||
+          currentPath === '/orders' ||
+          currentPath === '/layaways' ||
+          currentPath === '/account';
+
+        if (redirectHome || isRestrictedPage) {
+          setTimeout(() => {
+            window.location.href = '/';
+          }, 400);
+        }
+      }
     } catch (e) {
       console.error('Failed to clear user', e);
     }

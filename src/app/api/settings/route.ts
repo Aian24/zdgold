@@ -19,8 +19,16 @@ export async function GET() {
           address: 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
           currencySymbol: '₱',
           goldAccentColor: '#D4AF37',
+          themeConfig: JSON.stringify({ maxCartQuantityPerItem: 50, maxCartTotalItems: 100 }),
         },
       });
+    }
+
+    let themeConfigObj: any = {};
+    if (settings.themeConfig) {
+      try {
+        themeConfigObj = typeof settings.themeConfig === 'string' ? JSON.parse(settings.themeConfig) : settings.themeConfig;
+      } catch {}
     }
 
     return NextResponse.json({
@@ -28,6 +36,8 @@ export async function GET() {
       settings: {
         ...settings,
         logoUrl: settings.logoUrl || '/images/logo.png',
+        maxCartQuantityPerItem: themeConfigObj.maxCartQuantityPerItem ?? 50,
+        maxCartTotalItems: themeConfigObj.maxCartTotalItems ?? 100,
       },
     });
   } catch (error) {
@@ -44,6 +54,8 @@ export async function GET() {
           address: 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
           currencySymbol: '₱',
           goldAccentColor: '#D4AF37',
+          maxCartQuantityPerItem: 50,
+          maxCartTotalItems: 100,
         },
       },
       { status: 200 }
@@ -63,8 +75,37 @@ export async function POST(request: Request) {
       address,
       currencySymbol,
       goldAccentColor,
+      maxCartQuantityPerItem,
+      maxCartTotalItems,
       themeConfig,
     } = body;
+
+    let currentSettings = await prisma.siteSettings.findUnique({
+      where: { id: 'default_settings' },
+    });
+
+    let currentThemeConfig: any = {};
+    if (currentSettings?.themeConfig) {
+      try {
+        currentThemeConfig = typeof currentSettings.themeConfig === 'string' ? JSON.parse(currentSettings.themeConfig) : currentSettings.themeConfig;
+      } catch {}
+    }
+
+    if (themeConfig) {
+      try {
+        const parsed = typeof themeConfig === 'string' ? JSON.parse(themeConfig) : themeConfig;
+        currentThemeConfig = { ...currentThemeConfig, ...parsed };
+      } catch {}
+    }
+
+    if (maxCartQuantityPerItem !== undefined) {
+      currentThemeConfig.maxCartQuantityPerItem = Math.max(1, Number(maxCartQuantityPerItem) || 50);
+    }
+    if (maxCartTotalItems !== undefined) {
+      currentThemeConfig.maxCartTotalItems = Math.max(1, Number(maxCartTotalItems) || 100);
+    }
+
+    const themeConfigStr = JSON.stringify(currentThemeConfig);
 
     const updated = await prisma.siteSettings.upsert({
       where: { id: 'default_settings' },
@@ -77,7 +118,7 @@ export async function POST(request: Request) {
         address: address || 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
         currencySymbol: currencySymbol || '₱',
         goldAccentColor: goldAccentColor || '#D4AF37',
-        ...(themeConfig ? { themeConfig: typeof themeConfig === 'string' ? themeConfig : JSON.stringify(themeConfig) } : {}),
+        themeConfig: themeConfigStr,
       },
       create: {
         id: 'default_settings',
@@ -89,14 +130,18 @@ export async function POST(request: Request) {
         address: address || 'Greenhills Mall / Ongpin St, Binondo, Manila, Philippines',
         currencySymbol: currencySymbol || '₱',
         goldAccentColor: goldAccentColor || '#D4AF37',
-        themeConfig: themeConfig ? (typeof themeConfig === 'string' ? themeConfig : JSON.stringify(themeConfig)) : '{}',
+        themeConfig: themeConfigStr,
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Branding and theme settings updated successfully!',
-      settings: updated,
+      message: 'Branding and store limitation settings updated successfully!',
+      settings: {
+        ...updated,
+        maxCartQuantityPerItem: currentThemeConfig.maxCartQuantityPerItem ?? 50,
+        maxCartTotalItems: currentThemeConfig.maxCartTotalItems ?? 100,
+      },
     });
   } catch (error) {
     console.error('Error updating site settings:', error);

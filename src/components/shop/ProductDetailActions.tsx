@@ -10,12 +10,13 @@ import { Button } from '@/components/ui/Button';
 import { formatCurrency } from '@/lib/gold-pricing';
 
 export const ProductDetailActions: React.FC<{ product: ProductItem }> = ({ product }) => {
-  const { addItem } = useCart();
+  const { addItem, maxQtyPerItem } = useCart();
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
 
   const price = product.calculatedPrice ?? product.basePrice;
   const isSold = product.stockQuantity <= 0;
+  const maxAllowed = Math.min(product.stockQuantity || maxQtyPerItem, maxQtyPerItem);
 
   const handleAddToCart = () => {
     if (isSold) return;
@@ -76,8 +77,8 @@ export const ProductDetailActions: React.FC<{ product: ProductItem }> = ({ produ
           </span>
           <motion.button
             whileTap={{ scale: 0.85 }}
-            onClick={() => setQuantity(Math.min(Math.min(product.stockQuantity || 50, 50), quantity + 1))}
-            disabled={quantity >= 50 || quantity >= (product.stockQuantity || 50)}
+            onClick={() => setQuantity(Math.min(maxAllowed, quantity + 1))}
+            disabled={quantity >= maxAllowed}
             className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-600 hover:bg-neutral-100 disabled:opacity-30 cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />

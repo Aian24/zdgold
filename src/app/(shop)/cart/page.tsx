@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { FadeInUp } from '@/components/animations/Motion';
 
 export default function CartPage() {
-  const { items, itemCount, subtotal, totalGrams, totalCraftFee, updateQuantity, removeItem, clearCart, isLoaded } = useCart();
+  const { items, itemCount, subtotal, totalGrams, totalCraftFee, maxQtyPerItem, maxTotalCartItems, updateQuantity, removeItem, clearCart, isLoaded } = useCart();
   const [checkoutMode, setCheckoutMode] = useState<'CASH' | 'LAYAWAY'>('LAYAWAY');
 
   if (!isLoaded) {
@@ -134,15 +134,15 @@ export default function CartPage() {
                         <motion.button
                           whileTap={{ scale: 0.85 }}
                           onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          disabled={item.quantity >= 50 || itemCount >= 100}
+                          disabled={item.quantity >= maxQtyPerItem || itemCount >= maxTotalCartItems}
                           className="p-1 rounded text-neutral-600 hover:bg-neutral-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                           aria-label="Increase quantity"
                         >
                           <Plus className="w-3.5 h-3.5" />
                         </motion.button>
                       </div>
-                      {item.quantity >= 50 && (
-                        <span className="text-[10px] text-gold-700 font-bold">Max 50 pcs per item</span>
+                      {item.quantity >= maxQtyPerItem && (
+                        <span className="text-[10px] text-gold-700 font-bold">Max {maxQtyPerItem} pcs per item</span>
                       )}
                     </div>
 

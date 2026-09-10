@@ -118,7 +118,8 @@ export const AuthModal: React.FC = () => {
       setSuccessMessage('Signed in successfully.');
       setTimeout(() => {
         closeAuthModal();
-      }, 800);
+        router.refresh();
+      }, 700);
     } else {
       setErrorMessage(res.error || 'Invalid email or password.');
     }
@@ -156,7 +157,8 @@ export const AuthModal: React.FC = () => {
       setSuccessMessage('Account created successfully.');
       setTimeout(() => {
         closeAuthModal();
-      }, 1000);
+        router.refresh();
+      }, 800);
     } else {
       setErrorMessage(res.error || 'Failed to create account.');
     }
@@ -174,8 +176,8 @@ export const AuthModal: React.FC = () => {
       setSuccessMessage('Admin credentials verified. Redirecting...');
       setTimeout(() => {
         closeAuthModal();
-        router.push('/admin');
-      }, 800);
+        window.location.href = '/admin';
+      }, 600);
     } else {
       setErrorMessage(res.error || 'Invalid administrator credentials.');
     }

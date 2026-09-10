@@ -12,6 +12,7 @@ import {
   Upload,
   Trash2,
   Camera,
+  ShoppingBag,
 } from 'lucide-react';
 import { useSettings, SiteBrandSettings } from '@/lib/store';
 import { Button } from '@/components/ui/Button';
@@ -278,6 +279,117 @@ export default function AdminSettingsPage() {
           onChange={(e) => setFormData({ ...formData, address: e.target.value })}
           leftIcon={<MapPin className="w-4 h-4" />}
         />
+
+        {/* SHOPPING CART & ORDER LIMITATION SETTINGS */}
+        <div className="space-y-4 pt-4 border-t border-neutral-100">
+          <div>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-900 flex items-center gap-2">
+              <ShoppingBag className="w-4 h-4 text-gold-600" />
+              Shopping Cart & Order Item Limitations
+            </h3>
+            <p className="text-xs text-neutral-500 mt-1">
+              Configure maximum quantity limits to protect high-value solid gold inventory and prevent bulk hoarding.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-5 rounded-2xl bg-[#FCFCF9] border border-gold-500/20">
+            {/* Limit 1: Max Quantity Per Item */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-neutral-800 uppercase tracking-wide">
+                  Max Quantity Per Single Item
+                </label>
+                <span className="font-mono text-xs font-bold text-gold-700 bg-gold-500/15 px-2 py-0.5 rounded-md">
+                  {formData.maxCartQuantityPerItem || 50} pcs
+                </span>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {[10, 25, 50, 100].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, maxCartQuantityPerItem: preset })}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all border cursor-pointer ${
+                      formData.maxCartQuantityPerItem === preset
+                        ? 'bg-gold-500 text-white border-gold-500 shadow-2xs'
+                        : 'bg-white text-neutral-700 border-neutral-200 hover:border-gold-500'
+                    }`}
+                  >
+                    {preset} pcs
+                  </button>
+                ))}
+              </div>
+
+              <Input
+                label="Or Custom Limit Per Item (pcs):"
+                type="number"
+                min="1"
+                max="500"
+                value={formData.maxCartQuantityPerItem || 50}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    maxCartQuantityPerItem: Math.max(1, parseInt(e.target.value) || 1),
+                  })
+                }
+                className="text-xs font-mono"
+              />
+              <p className="text-[11px] text-neutral-500 leading-snug">
+                Maximum units of a specific ring, chain, or bracelet that one customer can add.
+              </p>
+            </div>
+
+            {/* Limit 2: Max Total Cart Quantity */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-neutral-800 uppercase tracking-wide">
+                  Max Total Items in Shopping Bag
+                </label>
+                <span className="font-mono text-xs font-bold text-gold-700 bg-gold-500/15 px-2 py-0.5 rounded-md">
+                  {formData.maxCartTotalItems || 100} pcs
+                </span>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="flex items-center gap-2 flex-wrap">
+                {[25, 50, 100, 200].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, maxCartTotalItems: preset })}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all border cursor-pointer ${
+                      formData.maxCartTotalItems === preset
+                        ? 'bg-gold-500 text-white border-gold-500 shadow-2xs'
+                        : 'bg-white text-neutral-700 border-neutral-200 hover:border-gold-500'
+                    }`}
+                  >
+                    {preset} pcs
+                  </button>
+                ))}
+              </div>
+
+              <Input
+                label="Or Custom Total Cart Cap (pcs):"
+                type="number"
+                min="1"
+                max="1000"
+                value={formData.maxCartTotalItems || 100}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    maxCartTotalItems: Math.max(1, parseInt(e.target.value) || 1),
+                  })
+                }
+                className="text-xs font-mono"
+              />
+              <p className="text-[11px] text-neutral-500 leading-snug">
+                Overall maximum piece count permitted across all items combined in a single checkout.
+              </p>
+            </div>
+          </div>
+        </div>
 
         <div className="pt-4 flex justify-end gap-3 border-t border-neutral-100">
           <Button

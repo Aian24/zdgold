@@ -37,8 +37,8 @@ function AuthCallbackContent() {
         setStatusText(`Welcome, ${user.name.split(' ')[0]}! Redirecting you now...`);
 
         setTimeout(() => {
-          router.push(target);
-        }, 800);
+          window.location.href = target;
+        }, 700);
       } else {
         throw new Error('Invalid user payload format');
       }
