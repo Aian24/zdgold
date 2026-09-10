@@ -15,6 +15,9 @@ import {
   Edit2,
   UserCheck,
   MapPin,
+  Eye,
+  EyeOff,
+  KeyRound,
 } from 'lucide-react';
 import { formatCurrency } from '@/lib/gold-pricing';
 import { Badge } from '@/components/ui/Badge';
@@ -47,6 +50,7 @@ export default function AdminCustomersPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<any | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -56,6 +60,7 @@ export default function AdminCustomersPage() {
     city: '',
     zipCode: '',
     role: 'CUSTOMER',
+    password: '',
   });
 
   const fetchCustomers = async () => {
@@ -149,7 +154,9 @@ export default function AdminCustomersPage() {
       city: 'Metro Manila',
       zipCode: '',
       role: 'CUSTOMER',
+      password: '',
     });
+    setShowPassword(false);
     setIsAddModalOpen(true);
   };
 
@@ -163,7 +170,9 @@ export default function AdminCustomersPage() {
       city: customer.city || '',
       zipCode: customer.zipCode || '',
       role: customer.role || 'CUSTOMER',
+      password: customer.password || '',
     });
+    setShowPassword(false);
     setIsEditModalOpen(true);
   };
 
@@ -630,16 +639,45 @@ export default function AdminCustomersPage() {
               />
             </div>
             <div>
-              <label className="text-[11px] font-bold text-neutral-700 block mb-1">Account Role</label>
+              <label className="text-[11px] font-bold text-neutral-700 block mb-1">Account Role *</label>
               <select
                 value={formData.role}
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="w-full bg-white border border-neutral-300 rounded-lg p-2 font-bold"
               >
-                <option value="CUSTOMER">CUSTOMER (Standard)</option>
-                <option value="ADMIN">ADMIN (Full Access)</option>
+                <option value="CUSTOMER">CUSTOMER (Standard User)</option>
+                <option value="ADMIN">ADMIN (Executive / Full Access)</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-bold text-neutral-700 block mb-1">
+              Account Password {formData.role === 'ADMIN' ? '(Required for Admin Login) *' : '(Optional)'}
+            </label>
+            <div className="relative flex items-center">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder={formData.role === 'ADMIN' ? 'Enter admin password (e.g. Aianbasagre24)' : 'Default: Aianbasagre24'}
+                className="w-full bg-white border border-neutral-300 rounded-lg p-2 pr-9 font-mono font-semibold"
+                required={formData.role === 'ADMIN'}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2.5 text-neutral-400 hover:text-neutral-700 cursor-pointer p-1"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-[10px] text-neutral-500 mt-1">
+              {formData.role === 'ADMIN'
+                ? 'This password allows this admin to sign in and access the executive dashboard.'
+                : 'Leave blank to use default password (Aianbasagre24).'}
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -682,7 +720,7 @@ export default function AdminCustomersPage() {
               isLoading={isSubmitting}
               className="w-full sm:w-auto font-bold"
             >
-              Create Client
+              Create Account
             </Button>
           </div>
         </form>
@@ -692,8 +730,8 @@ export default function AdminCustomersPage() {
       <Modal
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
-        title={`Edit Client • ${editingCustomer?.name || ''}`}
-        subtitle="Update contact details, role, or delivery address."
+        title={`Edit Account • ${editingCustomer?.name || ''}`}
+        subtitle="Update contact details, role, password, or delivery address."
         maxWidth="lg"
       >
         <form onSubmit={handleUpdateCustomer} className="space-y-4 text-xs">
@@ -737,10 +775,36 @@ export default function AdminCustomersPage() {
                 onChange={(e) => setFormData({ ...formData, role: e.target.value })}
                 className="w-full bg-white border border-neutral-300 rounded-lg p-2 font-bold"
               >
-                <option value="CUSTOMER">CUSTOMER (Standard)</option>
-                <option value="ADMIN">ADMIN (Full Access)</option>
+                <option value="CUSTOMER">CUSTOMER (Standard User)</option>
+                <option value="ADMIN">ADMIN (Executive / Full Access)</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="text-[11px] font-bold text-neutral-700 block mb-1">
+              Account Password
+            </label>
+            <div className="relative flex items-center">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
+                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                placeholder="Enter password"
+                className="w-full bg-white border border-neutral-300 rounded-lg p-2 pr-9 font-mono font-semibold"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-2.5 text-neutral-400 hover:text-neutral-700 cursor-pointer p-1"
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-[10px] text-neutral-500 mt-1">
+              Change the login password for this account.
+            </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

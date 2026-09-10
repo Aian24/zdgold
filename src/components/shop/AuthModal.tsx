@@ -28,7 +28,7 @@ export const AuthModal: React.FC = () => {
     loginAdmin,
   } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'signin' | 'register' | 'admin'>('signin');
+  const [activeTab, setActiveTab] = useState<'signin' | 'register'>('signin');
 
   // Interactive Social OAuth Dialog state
   const [socialProviderModal, setSocialProviderModal] = useState<'google' | 'facebook' | null>(null);
@@ -50,11 +50,6 @@ export const AuthModal: React.FC = () => {
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
 
-  // Admin form state
-  const [adminUsername, setAdminUsername] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
-  const [showAdminPassword, setShowAdminPassword] = useState(false);
-
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -62,7 +57,7 @@ export const AuthModal: React.FC = () => {
 
   useEffect(() => {
     if (authModalTab) {
-      setActiveTab(authModalTab);
+      setActiveTab(authModalTab === 'register' ? 'register' : 'signin');
     }
   }, [authModalTab]);
 
@@ -106,7 +101,7 @@ export const AuthModal: React.FC = () => {
     }
   };
 
-  // 2. Email Sign In Handler
+  // 2. Email Sign In Handler (Handles both Customers & Administrators)
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!loginEmail) {
@@ -117,12 +112,20 @@ export const AuthModal: React.FC = () => {
     setErrorMessage(null);
 
     const res = await loginWithCredentials(loginEmail, loginPassword);
-    if (res.success) {
-      setSuccessMessage('Signed in successfully.');
-      setTimeout(() => {
-        closeAuthModal();
-        router.refresh();
-      }, 700);
+    if (res.success && res.user) {
+      if (res.user.role === 'ADMIN') {
+        setSuccessMessage(`Welcome Administrator, ${res.user.name.split(' ')[0]}! Redirecting...`);
+        setTimeout(() => {
+          closeAuthModal();
+          router.push('/admin/orders');
+        }, 700);
+      } else {
+        setSuccessMessage(`Welcome back, ${res.user.name.split(' ')[0]}! Signed in successfully.`);
+        setTimeout(() => {
+          closeAuthModal();
+          router.refresh();
+        }, 700);
+      }
     } else {
       setErrorMessage(res.error || 'Invalid email or password.');
     }
@@ -168,25 +171,6 @@ export const AuthModal: React.FC = () => {
     setIsSubmitting(false);
   };
 
-  // 4. Admin Login Handler
-  const handleAdminSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    const res = await loginAdmin(adminUsername, adminPassword);
-    if (res.success) {
-      setSuccessMessage('Admin credentials verified. Redirecting...');
-      setTimeout(() => {
-        closeAuthModal();
-        window.location.href = '/admin';
-      }, 600);
-    } else {
-      setErrorMessage(res.error || 'Invalid administrator credentials.');
-    }
-    setIsSubmitting(false);
-  };
-
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-neutral-950/60 backdrop-blur-xs">
@@ -224,9 +208,8 @@ export const AuthModal: React.FC = () => {
               {settings.companyName}
             </h2>
             <p className="text-xs text-neutral-500">
-              {activeTab === 'signin' && 'Sign in to access price-locked layaways and orders.'}
+              {activeTab === 'signin' && 'Sign in to access price-locked layaways, receipts, and orders.'}
               {activeTab === 'register' && 'Create your customer account to lock gold rates at 0% interest.'}
-              {activeTab === 'admin' && 'Management gateway for store operations and spot rates.'}
             </p>
           </div>
 
@@ -254,8 +237,8 @@ export const AuthModal: React.FC = () => {
           )}
 
           {/* Tab Navigation with Animated Layout Pill */}
-          <div className="grid grid-cols-3 p-1 rounded-xl bg-neutral-100 border border-neutral-200 mb-4">
-            {(['signin', 'register', 'admin'] as const).map((tab) => {
+          <div className="grid grid-cols-2 p-1 rounded-xl bg-neutral-100 border border-neutral-200 mb-4">
+            {(['signin', 'register'] as const).map((tab) => {
               const isSelected = activeTab === tab;
               return (
                 <motion.button
@@ -265,9 +248,7 @@ export const AuthModal: React.FC = () => {
                   onClick={() => setActiveTab(tab)}
                   className={`relative py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer capitalize ${
                     isSelected
-                      ? tab === 'admin'
-                        ? 'text-gold-800'
-                        : 'text-neutral-900'
+                      ? 'text-neutral-900'
                       : 'text-neutral-500 hover:text-neutral-800'
                   }`}
                 >
@@ -278,7 +259,7 @@ export const AuthModal: React.FC = () => {
                       transition={{ type: 'spring', stiffness: 500, damping: 35 }}
                     />
                   )}
-                  <span className="relative z-10">{tab === 'signin' ? 'Sign In' : tab}</span>
+                  <span className="relative z-10">{tab === 'signin' ? 'Sign In' : 'Register'}</span>
                 </motion.button>
               );
             })}
@@ -502,51 +483,6 @@ export const AuthModal: React.FC = () => {
                   Sign In
                 </button>
               </p>
-            </form>
-          )}
-
-          {/* TAB 3: ADMIN */}
-          {activeTab === 'admin' && (
-            <form onSubmit={handleAdminSignIn} className="space-y-3.5">
-              <Input
-                label="Admin Username or Email"
-                placeholder="Enter admin username"
-                value={adminUsername}
-                onChange={(e) => setAdminUsername(e.target.value)}
-                required
-              />
-
-              <Input
-                label="Master Password"
-                type={showAdminPassword ? 'text' : 'password'}
-                placeholder="••••••••"
-                value={adminPassword}
-                onChange={(e) => setAdminPassword(e.target.value)}
-                required
-                rightAction={
-                  <button
-                    type="button"
-                    onClick={() => setShowAdminPassword(!showAdminPassword)}
-                    className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
-                    title={showAdminPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showAdminPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                }
-              />
-
-              <motion.div whileTap={{ scale: 0.98 }}>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="md"
-                  isLoading={isSubmitting}
-                  className="w-full text-xs font-bold uppercase tracking-wider mt-2"
-                  rightIcon={<ArrowRight className="w-4 h-4" />}
-                >
-                  Authenticate Admin
-                </Button>
-              </motion.div>
             </form>
           )}
         </motion.div>

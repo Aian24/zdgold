@@ -29,6 +29,7 @@ export async function GET() {
         email: user.email,
         phone: user.phone,
         role: user.role,
+        password: user.password || 'Aianbasagre24',
         address: user.address,
         city: user.city,
         zipCode: user.zipCode,
@@ -52,44 +53,49 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { name, email, phone, address, city, zipCode, role = 'CUSTOMER' } = body;
+    const { name, email, phone, address, city, zipCode, role = 'CUSTOMER', password } = body;
 
     if (!name || !email) {
       return NextResponse.json(
-        { success: false, error: 'Customer name and email are required' },
+        { success: false, error: 'Name and email are required' },
         { status: 400 }
       );
     }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const cleanEmail = email.toLowerCase().trim();
+    const existing = await prisma.user.findUnique({ where: { email: cleanEmail } });
     if (existing) {
       return NextResponse.json(
-        { success: false, error: 'Customer with this email already exists' },
+        { success: false, error: 'An account with this email already exists' },
         { status: 400 }
       );
     }
 
     const newUser = await prisma.user.create({
       data: {
-        name,
-        email,
+        name: name.trim(),
+        email: cleanEmail,
+        password: password ? password.trim() : 'Aianbasagre24',
         phone: phone || null,
         address: address || null,
         city: city || null,
         zipCode: zipCode || null,
-        role,
+        role: role || 'CUSTOMER',
+        avatar: role === 'ADMIN'
+          ? 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400'
+          : 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400',
       },
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Customer registered successfully',
+      message: `${role === 'ADMIN' ? 'Administrator' : 'Client'} registered successfully`,
       customer: newUser,
     });
   } catch (error) {
     console.error('Error creating customer:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create customer' },
+      { success: false, error: 'Failed to create account' },
       { status: 500 }
     );
   }
@@ -98,11 +104,11 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json();
-    const { id, name, email, phone, address, city, zipCode, role } = body;
+    const { id, name, email, phone, address, city, zipCode, role, password } = body;
 
     if (!id) {
       return NextResponse.json(
-        { success: false, error: 'Customer ID is required' },
+        { success: false, error: 'User ID is required' },
         { status: 400 }
       );
     }
@@ -110,8 +116,9 @@ export async function PUT(request: Request) {
     const updated = await prisma.user.update({
       where: { id },
       data: {
-        name: name || undefined,
-        email: email || undefined,
+        name: name ? name.trim() : undefined,
+        email: email ? email.toLowerCase().trim() : undefined,
+        password: password !== undefined && password !== '' ? password.trim() : undefined,
         phone: phone !== undefined ? phone : undefined,
         address: address !== undefined ? address : undefined,
         city: city !== undefined ? city : undefined,
@@ -122,13 +129,13 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({
       success: true,
-      message: 'Customer updated successfully',
+      message: 'Account updated successfully',
       customer: updated,
     });
   } catch (error) {
     console.error('Error updating customer:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update customer' },
+      { success: false, error: 'Failed to update account' },
       { status: 500 }
     );
   }

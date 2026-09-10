@@ -34,10 +34,9 @@ export default function LoginPage() {
     loginWithSocial,
     loginWithCredentials,
     registerUser,
-    loginAdmin,
   } = useAuth();
 
-  const [activeTab, setActiveTab] = useState<'signin' | 'register' | 'admin'>('signin');
+  const [activeTab, setActiveTab] = useState<'signin' | 'register'>('signin');
 
   // Interactive Social OAuth Dialog state
   const [socialProviderModal, setSocialProviderModal] = useState<'google' | 'facebook' | null>(null);
@@ -58,11 +57,6 @@ export default function LoginPage() {
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [showRegPassword, setShowRegPassword] = useState(false);
   const [showRegConfirmPassword, setShowRegConfirmPassword] = useState(false);
-
-  // Admin form state
-  const [adminUsername, setAdminUsername] = useState('');
-  const [adminPassword, setAdminPassword] = useState('');
-  const [showAdminPassword, setShowAdminPassword] = useState(false);
 
   // UI state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,11 +105,18 @@ export default function LoginPage() {
     setErrorMessage(null);
 
     const res = await loginWithCredentials(loginEmail, loginPassword);
-    if (res.success) {
-      setSuccessMessage('Signed in successfully!');
-      setTimeout(() => {
-        router.push('/account');
-      }, 800);
+    if (res.success && res.user) {
+      if (res.user.role === 'ADMIN') {
+        setSuccessMessage('Admin credentials verified. Redirecting to Executive Portal...');
+        setTimeout(() => {
+          router.push('/admin/orders');
+        }, 700);
+      } else {
+        setSuccessMessage(`Welcome, ${res.user.name?.split(' ')[0] || 'Client'}! Signed in successfully.`);
+        setTimeout(() => {
+          router.push('/account');
+        }, 700);
+      }
     } else {
       setErrorMessage(res.error || 'Invalid email or password.');
     }
@@ -160,24 +161,6 @@ export default function LoginPage() {
     setIsSubmitting(false);
   };
 
-  // Admin Login
-  const handleAdminSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setErrorMessage(null);
-
-    const res = await loginAdmin(adminUsername, adminPassword);
-    if (res.success) {
-      setSuccessMessage('Admin credentials verified. Redirecting to Executive Portal...');
-      setTimeout(() => {
-        router.push('/admin');
-      }, 800);
-    } else {
-      setErrorMessage(res.error || 'Invalid admin credentials.');
-    }
-    setIsSubmitting(false);
-  };
-
   return (
     <div className="max-w-lg mx-auto px-4 py-12 sm:py-16 space-y-6">
       {/* Brand Header */}
@@ -198,7 +181,7 @@ export default function LoginPage() {
       </div>
 
       {/* Role Tabs */}
-      <div className="grid grid-cols-3 p-1 rounded-2xl bg-neutral-100 border border-neutral-200">
+      <div className="grid grid-cols-2 p-1 rounded-2xl bg-neutral-100 border border-neutral-200">
         <button
           type="button"
           onClick={() => {
@@ -228,21 +211,6 @@ export default function LoginPage() {
           }`}
         >
           <UserPlus className="w-3.5 h-3.5" /> Create Account
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setActiveTab('admin');
-            setErrorMessage(null);
-            setSuccessMessage(null);
-          }}
-          className={`py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-            activeTab === 'admin'
-              ? 'bg-white text-gold-700 shadow-xs'
-              : 'text-neutral-500 hover:text-neutral-800'
-          }`}
-        >
-          <Shield className="w-3.5 h-3.5" /> Admin Gateway
         </button>
       </div>
 
@@ -468,53 +436,6 @@ export default function LoginPage() {
             rightIcon={<ArrowRight className="w-4 h-4" />}
           >
             Create Permanent Account
-          </Button>
-        </form>
-      )}
-
-      {/* ========================================================================= */}
-      {/* TAB 3: ADMIN GATEWAY */}
-      {/* ========================================================================= */}
-      {activeTab === 'admin' && (
-        <form onSubmit={handleAdminSignIn} className="rounded-3xl bg-white border border-gold-500/30 p-6 sm:p-8 space-y-5 shadow-sm animate-in fade-in">
-          <Input
-            label="Admin Username or Email"
-            placeholder="Enter admin username"
-            value={adminUsername}
-            onChange={(e) => setAdminUsername(e.target.value)}
-            leftIcon={<User className="w-4 h-4 text-neutral-400" />}
-            required
-          />
-
-          <Input
-            label="Master Password"
-            type={showAdminPassword ? 'text' : 'password'}
-            placeholder="••••••••"
-            value={adminPassword}
-            onChange={(e) => setAdminPassword(e.target.value)}
-            leftIcon={<KeyRound className="w-4 h-4 text-neutral-400" />}
-            required
-            rightAction={
-              <button
-                type="button"
-                onClick={() => setShowAdminPassword(!showAdminPassword)}
-                className="text-neutral-400 hover:text-gold-700 cursor-pointer p-1 transition-colors"
-                title={showAdminPassword ? 'Hide password' : 'Show password'}
-              >
-                {showAdminPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            }
-          />
-
-          <Button
-            type="submit"
-            variant="primary"
-            size="lg"
-            isLoading={isSubmitting}
-            className="w-full text-xs font-bold uppercase tracking-wider mt-2"
-            rightIcon={<ArrowRight className="w-4 h-4" />}
-          >
-            Authenticate Admin Gateway
           </Button>
         </form>
       )}

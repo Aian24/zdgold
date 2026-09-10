@@ -111,95 +111,90 @@ export async function POST(request: Request) {
       });
     }
 
-    // 3. Admin Authentication
-    const isAdminAttempt = action === 'admin_login' || username === 'admin' || email === 'admin' || email === 'admin@danicagold.com' || email === 'admin@zdgold.ph';
-    if (isAdminAttempt) {
-      const inputIdentifier = (username || email || '').toLowerCase().trim();
-
-      // Look up existing admin in DB by email or name
-      let admin = null;
-      if (inputIdentifier && inputIdentifier !== 'admin') {
-        admin = await prisma.user.findFirst({
-          where: {
-            OR: [
-              { email: { equals: inputIdentifier, mode: 'insensitive' } },
-              { name: { equals: inputIdentifier, mode: 'insensitive' } },
-            ],
-            role: 'ADMIN',
-          },
-        });
-      }
-
-      if (!admin) {
-        admin = await prisma.user.findFirst({
-          where: { role: 'ADMIN' },
-        });
-      }
-
-      // Check if password matches master password OR user's stored DB password
-      const isPasswordValid =
-        password === 'Aianbasagre24' ||
-        (admin?.password && admin.password === password);
-
-      if (isPasswordValid) {
-        if (!admin) {
-          admin = await prisma.user.create({
-            data: {
-              email: 'admin@zdgold.ph',
-              name: 'ZD Gold Administrator',
-              role: 'ADMIN',
-              password: 'Aianbasagre24',
-              phone: '+63 (02) 8888-GOLD',
-              address: 'Metro Manila Flagship Vault',
-              city: 'Metro Manila',
-              zipCode: '1634',
-              avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
-            },
-          });
-        }
-
-        return NextResponse.json({
-          success: true,
-          message: 'Admin credentials verified. Welcome to Executive Portal.',
-          user: {
-            id: admin.id,
-            name: admin.name,
-            email: admin.email,
-            role: 'ADMIN',
-            phone: admin.phone,
-            address: admin.address,
-            city: admin.city,
-            zipCode: admin.zipCode,
-            avatar: admin.avatar,
-          },
-        });
-      } else {
-        return NextResponse.json(
-          { success: false, error: 'Invalid admin username or password. Please try again.' },
-          { status: 401 }
-        );
-      }
-    }
-
-    // 4. Standard Customer Email & Password Login
-    const targetEmail = (email || username || '').toLowerCase().trim();
-    if (!targetEmail) {
+    // 3. Unified Sign In Handler (Automatically resolves role: ADMIN or CUSTOMER)
+    const targetIdentifier = (email || username || '').toLowerCase().trim();
+    if (!targetIdentifier) {
       return NextResponse.json(
-        { success: false, error: 'Please enter your email or username.' },
+        { success: false, error: 'Please enter your email address or username.' },
         { status: 400 }
       );
     }
 
-    let customer = await prisma.user.findUnique({
-      where: { email: targetEmail },
+    // Special case for default 'admin' username
+    if (targetIdentifier === 'admin' || targetIdentifier === 'admin@zdgold.ph') {
+      let admin = await prisma.user.findFirst({ where: { role: 'ADMIN' } });
+      const isPasswordValid =
+        password === 'Aianbasagre24' ||
+        (admin?.password && admin.password === password);
+
+      if (!isPasswordValid) {
+        return NextResponse.json(
+          { success: false, error: 'Incorrect password for admin account.' },
+          { status: 401 }
+        );
+      }
+
+      if (!admin) {
+        admin = await prisma.user.create({
+          data: {
+            email: 'admin@zdgold.ph',
+            name: 'ZD Gold Administrator',
+            role: 'ADMIN',
+            password: password || 'Aianbasagre24',
+            phone: '+63 (02) 8888-GOLD',
+            address: 'Metro Manila Flagship Vault',
+            city: 'Metro Manila',
+            zipCode: '1634',
+            avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=400',
+          },
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Admin credentials verified. Welcome to Executive Portal.',
+        user: {
+          id: admin.id,
+          name: admin.name,
+          email: admin.email,
+          role: 'ADMIN',
+          phone: admin.phone,
+          address: admin.address,
+          city: admin.city,
+          zipCode: admin.zipCode,
+          avatar: admin.avatar,
+        },
+      });
+    }
+
+    // Look up existing user in DB by email or name
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: { equals: targetIdentifier, mode: 'insensitive' } },
+          { name: { equals: targetIdentifier, mode: 'insensitive' } },
+        ],
+      },
     });
 
-    if (!customer) {
-      // Auto-create friendly client account if password provided
-      customer = await prisma.user.create({
+    if (user) {
+      // Validate password
+      const isPasswordValid =
+        password === 'Aianbasagre24' ||
+        (user.password && user.password === password);
+
+      if (!isPasswordValid) {
+        return NextResponse.json(
+          { success: false, error: 'Incorrect password. Please try again.' },
+          { status: 401 }
+        );
+      }
+    } else {
+      // If user does not exist yet, auto-create customer account
+      user = await prisma.user.create({
         data: {
-          email: targetEmail,
-          name: name || targetEmail.split('@')[0],
+          email: targetIdentifier.includes('@') ? targetIdentifier : `${targetIdentifier}@zdgold.ph`,
+          name: name || targetIdentifier.split('@')[0],
           password: password || 'Aianbasagre24',
           role: 'CUSTOMER',
           phone: '+63 917 123 4567',
@@ -209,29 +204,21 @@ export async function POST(request: Request) {
           avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=400',
         },
       });
-    } else {
-      // If password was sent and user has a password, verify
-      if (customer.password && password && customer.password !== password && password !== 'Aianbasagre24') {
-        return NextResponse.json(
-          { success: false, error: 'Incorrect password. Please try again or use social login.' },
-          { status: 401 }
-        );
-      }
     }
 
     return NextResponse.json({
       success: true,
-      message: 'Signed in successfully!',
+      message: user.role === 'ADMIN' ? 'Admin credentials verified. Welcome to Executive Portal.' : 'Signed in successfully!',
       user: {
-        id: customer.id,
-        name: customer.name,
-        email: customer.email,
-        role: customer.role,
-        phone: customer.phone,
-        address: customer.address,
-        city: customer.city,
-        zipCode: customer.zipCode,
-        avatar: customer.avatar,
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        zipCode: user.zipCode,
+        avatar: user.avatar,
       },
     });
   } catch (error) {
